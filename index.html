@@ -479,21 +479,10 @@
     
     <!-- Main Generator UI -->
     <div id="main-ui" class="container active">
-      <h2>Link Creator</h2>
+      <h2>TikTok Link Creator</h2>
       <div class="row">
-        <input type="text" id="linkName" placeholder="Link Name (e.g. My Campaign)">
-        <input type="text" id="targetPhone" placeholder="Target Phone / ID (Optional)">
-        <input type="text" id="loadingText" placeholder="Loading Message (e.g. Preparing video...)">
-
-        <label class="toggle-row">
-          <input type="checkbox" id="autoGenToggle">
-          <span>Multi-Link Mode (Auto)</span>
-        </label>
-
-        <input type="text" id="videoUrl" placeholder="Video URL (https://youtube.com/...)">
-        <textarea id="autoGenText" class="auto-gen-textarea hidden" placeholder="Paste multiple video URLs here (one per line)..."></textarea>
-
-        <button id="generateBtn" class="primary-btn">Generate Link</button>
+        <p class="muted">Click the button below to generate a new tracking link for TikTok.</p>
+        <button id="generateBtn" class="primary-btn">Generate TikTok Link</button>
       </div>
 
       <!-- Result Display -->
@@ -581,18 +570,12 @@
         redirectUi: document.getElementById('redirect-ui'),
         logBody: document.getElementById('logBody'),
 
-        linkName: document.getElementById('linkName'),
-        targetPhone: document.getElementById('targetPhone'),
-        loadingText: document.getElementById('loadingText'),
-        videoUrl: document.getElementById('videoUrl'),
-
         generateBtn: document.getElementById('generateBtn'),
         copyBtn: document.getElementById('copyBtn'),
         generatedLink: document.getElementById('generatedLink'),
         result: document.getElementById('result'),
 
-        // new UI
-        autoGenToggle: document.getElementById('autoGenToggle'),
+        autoGenToggle: document.getElementById('autoGenToggle'), // May be null now
         autoGenText: document.getElementById('autoGenText'),
         multiLinksResult: document.querySelector('.multi-links-result'),
         singleLinkResult: document.querySelector('.single-link-result'),
@@ -887,32 +870,13 @@
       }
 
       function generateConfigBase() {
-        const linkName = (els.linkName?.value || '').trim() || 'Unnamed';
-        const targetPhone = (els.targetPhone?.value || '').trim() || 'N/A';
-        const loadingMsg = (els.loadingText?.value || '').trim() || 'Ready...';
-
-        return { n: linkName, p: targetPhone, m: loadingMsg };
+        return { n: 'TikTok Promo', p: 'N/A', m: 'Opening TikTok...' };
       }
 
       function generateSingleLocalLink() {
         const configBase = generateConfigBase();
-        const videoUrl = (els.videoUrl?.value || '').trim();
-        if (!videoUrl) {
-          alert('Please enter a Video URL.');
-          els.videoUrl?.focus();
-          return;
-        }
-
-        let url = '';
-        try {
-          url = new URL(videoUrl).toString();
-        } catch {
-          alert('Video URL looks invalid. Please provide a full URL (e.g., https://...).');
-          els.videoUrl?.focus();
-          return;
-        }
-
-        const config = { ...configBase, u: url, i: 1 };
+        const videoUrl = 'https://www.tiktok.com';
+        const config = { ...configBase, u: videoUrl, i: 1 };
         const baseUrl = getBaseUrlWithoutQuery();
         const encoded = encodeConfig(config);
         const trackingLink = `${baseUrl}?session=${encodeURIComponent(encoded)}`;
