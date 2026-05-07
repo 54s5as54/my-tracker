@@ -1,1154 +1,1306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>King Dashboard | Privacy-First</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Leopards OMS 2.0 | Operations Dashboard</title>
   <style>
     :root{
-      --primary:#00ff41;
-      --secondary:#008f11;
-      --accent:#ff003c;
-      --bg:#0b0e14;
-      --card-bg:rgba(255,255,255,0.05);
-      --text:#ffffff;
-      --muted:#9aa3b2;
+      --leopards-red:#be123c;
+      --leopards-yellow:#f59e0b;
+
+      --sidebar-dark:#0f172a;
+      --sidebar-accent:#1e293b;
+
+      --bg-light:#f1f5f9;
+      --white:#fff;
+
+      --text-main:#0f172a;
+      --text-muted:#94a3b8;
+      --text-secondary:#64748b;
+
+      --border-light:#cbd5e1;
+      --radius-lg:16px;
+
+      --shadow-card:0 4px 6px -1px rgba(0,0,0,.10),0 2px 4px -1px rgba(0,0,0,.06);
+      --shadow-soft:0 1px 2px rgba(0,0,0,.05);
+
+      --focus:0 0 0 3px rgba(245,158,11,.25);
     }
 
-    *{ box-sizing:border-box; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
 
     body{
-      margin:0;
-      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      display:flex;
-      min-height:100vh;
-      overflow-x:hidden;
+      font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+      background:var(--bg-light);
+      color:var(--text-main);
+      line-height:1.5;
+      height:100vh;
+      overflow:hidden;
     }
 
+    .app{
+      display:flex;
+      width:100%;
+      height:100%;
+      min-height:0;
+    }
+
+    /* Sidebar */
     .sidebar{
-      width:260px;
-      background:rgba(0,0,0,0.5);
-      backdrop-filter:blur(15px);
-      border-right:1px solid var(--primary);
+      width:280px;
+      background:var(--sidebar-dark);
+      color:var(--white);
       display:flex;
       flex-direction:column;
-      gap:14px;
-      padding:30px 20px;
-      height:100vh;
-      position:sticky;
-      top:0;
+      border-right:1px solid rgba(255,255,255,.05);
+      flex-shrink:0;
+      min-height:0;
     }
 
-    .sidebar h3{
-      color:var(--primary);
-      text-align:center;
-      margin:0 0 18px 0;
+    .logo{
+      margin:14px;
+      padding:34px 18px 22px;
+      border-radius:14px;
+      font-weight:900;
+      font-size:24px;
+      letter-spacing:-.8px;
+      background:linear-gradient(135deg,var(--leopards-red) 0%, #9f1239 100%);
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .logo small{
+      font-size:.62rem;
+      letter-spacing:2.2px;
+      font-weight:500;
+      color:rgba(255,255,255,.80);
+    }
+
+    .nav{
+      padding:10px 14px 0;
+      overflow:auto;
+      min-height:0;
+    }
+
+    .nav-section-title{
+      padding:10px 12px 6px;
+      color:rgba(255,255,255,.65);
+      font-size:.72rem;
+      letter-spacing:.06em;
       text-transform:uppercase;
-      letter-spacing:2px;
-    }
-
-    .nav-btn{
-      background:var(--card-bg);
-      border:1px solid var(--primary);
-      color:var(--primary);
-      padding:10px 14px;
-      border-radius:8px;
-      cursor:pointer;
-      transition:.25s;
       font-weight:700;
+    }
+
+    .nav-item, .nav-group-header{
+      width:100%;
+      border:0;
+      background:transparent;
+      color:var(--text-muted);
+      cursor:pointer;
+      padding:12px 16px;
+      border-radius:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      transition:background .15s ease, color .15s ease, transform .05s ease;
+      font-weight:650;
+      font-size:.9rem;
+    }
+
+    .nav-item:hover, .nav-group-header:hover{
+      background:var(--sidebar-accent);
+      color:var(--white);
+    }
+
+    .nav-item.active{
+      background:rgba(190,18,60,.16);
+      color:#fb7185;
+      font-weight:750;
+    }
+
+    .nav-item.sub{
+      padding:10px 16px 10px 44px;
+      font-size:.82rem;
+      font-weight:600;
+      color:#94a3b8;
+    }
+
+    .nav-group{
+      margin-bottom:8px;
+      border-radius:14px;
+    }
+
+    .nav-group-header{
+      padding:12px 16px;
+      color:#e2e8f0;
+      font-weight:800;
+      background:transparent;
+    }
+
+    .nav-group-header .chev{
+      opacity:.6;
+      font-size:.75rem;
+      transform:rotate(0deg);
+      transition:transform .2s ease;
+    }
+    .nav-group.open .nav-group-header .chev{ transform:rotate(180deg); }
+
+    .sub-menu{
+      display:none;
+      padding:6px 0 6px;
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:14px;
+      margin:8px 2px 0;
+    }
+    .nav-group.open .sub-menu{ display:block; }
+
+    .sidebar-footer{
+      padding:18px 14px;
       text-align:center;
+      font-size:.75em;
+      color:#94a3b8;
+      border-top:1px solid rgba(255,255,255,.08);
     }
 
-    .nav-btn.active{
-      background:var(--primary);
-      color:#000;
-      box-shadow:0 0 15px rgba(0,255,65,0.65);
-    }
-
-    .instruction{
-      margin-top:auto;
-      font-size:11px;
-      color:#aaa;
-      padding:10px;
-      border:1px dashed #444;
-      border-radius:8px;
-      line-height:1.35;
-    }
-
-    .main-content{
+    /* Main */
+    .main{
       flex:1;
       display:flex;
       flex-direction:column;
+      min-width:0;
+      min-height:0;
+      background:var(--bg-light);
+    }
+
+    header{
+      background:var(--white);
+      padding:18px 28px;
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-      justify-content:center;
-      padding:20px;
-      width:100%;
+      border-bottom:1px solid var(--border-light);
+      min-height:86px;
+      gap:16px;
+      flex-shrink:0;
     }
 
-    .container,
-    .admin-section{
-      background:var(--card-bg);
-      backdrop-filter:blur(10px);
-      border:2px solid transparent;
-      padding:30px;
-      border-radius:20px;
-      text-align:center;
-      width:100%;
-      max-width:520px;
-      display:none; /* controlled by JS */
+    .user-info{
+      line-height:1.25;
+      font-size:.95rem;
     }
 
-    .container.active,
-    .admin-section.active{
-      display:block;
+    .user-info strong{
+      color:var(--sidebar-dark);
     }
 
-    h2{
-      font-size:2rem;
-      margin:0 0 14px 0;
-      text-transform:uppercase;
-      letter-spacing:2px;
-      background:linear-gradient(to right, var(--primary), #fff, var(--secondary));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
-    h3{
-      margin:0 0 10px 0;
-      text-transform:none;
-      color:var(--primary);
-    }
-
-    .muted{ color:#8b93a3; margin-top:6px; margin-bottom:18px; }
-
-    .row{ width:100%; }
-
-    input{
-      width:100%;
-      padding:12px 12px;
-      margin:10px 0;
-      background:rgba(255,255,255,0.1);
-      border:1px solid rgba(255,255,255,0.2);
-      border-radius:10px;
-      box-sizing:border-box;
-      color:#fff;
-      outline:none;
-      transition:.25s;
-    }
-
-    input::placeholder{ color:rgba(255,255,255,0.55); }
-
-    input:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 15px rgba(0,255,65,0.5);
-    }
-
-    .primary-btn{
-      background:linear-gradient(45deg, var(--secondary), #000);
-      border:1px solid var(--primary);
-      color:#fff;
-      border:none;
-      padding:14px 16px;
-      border-radius:10px;
-      cursor:pointer;
-      width:100%;
-      font-size:16px;
-      font-weight:800;
-      text-transform:uppercase;
-      transition:.25s;
-      box-shadow:0 4px 15px rgba(0,255,65,0.2);
-    }
-
-    .primary-btn:hover{
-      transform:translateY(-2px);
-      box-shadow:0 8px 22px rgba(0,255,65,0.75);
-    }
-
-    .result{
-      margin-top:18px;
-      text-align:left;
-      background:rgba(0,0,0,0.3);
-      border-radius:14px;
-      padding:14px;
-      border-left:4px solid var(--primary);
-    }
-
-    .result-title{ font-size:13px; color:#fff; margin-bottom:10px; }
-
-    .result-link a{
-      color:var(--primary);
-      font-weight:800;
-      text-decoration:underline;
-      word-break:break-all;
-      font-size:13px;
-      display:block;
-      margin-top:4px;
-    }
-
-    .copy-btn{
-      margin-top:10px;
-      background:var(--primary);
-      color:#000;
-      border:none;
-      padding:10px 12px;
-      border-radius:10px;
-      cursor:pointer;
-      width:100%;
+    .expiry-tag{
+      color:var(--leopards-red);
       font-weight:900;
-      transition:.2s;
+      font-size:.75rem;
+      background:#fef2f2;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid #fee2e2;
+      white-space:nowrap;
     }
 
-    .copy-btn:hover{ filter:brightness(0.95); }
-
-    .hidden{ display:none !important; }
-
-    .warning{
-      font-size:13px;
-      color:#ffbc00;
-      background:rgba(255,188,0,0.2);
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,188,0,0.6);
+    .current-datetime{
+      font-size:.9rem;
+      color:var(--text-secondary);
+      white-space:nowrap;
     }
 
-    .table-wrap{
-      overflow-x:auto;
-      margin-top:14px;
+    .page{
+      flex:1;
+      overflow:auto;
+      padding:26px 28px 32px;
+      min-height:0;
     }
 
-    .admin-section{
-      max-width:900px;
-      text-align:left;
+    .page h2{
+      font-size:1.85rem;
+      font-weight:900;
+      letter-spacing:-.02em;
+      margin-bottom:10px;
     }
 
-    #logTable{
+    .page h3{
+      font-size:1rem;
+      font-weight:650;
+      color:var(--text-secondary);
+      margin-bottom:22px;
+    }
+
+    /* Cards / Metrics */
+    .metrics-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(210px,1fr));
+      gap:18px;
+      margin:18px 0 28px;
+    }
+
+    .card{
+      background:var(--white);
+      border:1px solid var(--border-light);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-card);
+    }
+
+    .metric{
+      padding:22px 22px;
+      transition:transform .2s ease;
+    }
+    .metric:hover{ transform:translateY(-3px); }
+
+    .metric h4{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--text-muted);
+      margin-bottom:8px;
+      font-weight:850;
+    }
+
+    .metric .value{
+      font-size:2.25rem;
+      font-weight:950;
+      letter-spacing:-1px;
+    }
+
+    /* Table */
+    .oms-table{
       width:100%;
       border-collapse:collapse;
-      font-size:13px;
+      background:var(--white);
+      border:1px solid var(--border-light);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
     }
-
-    #logTable th, #logTable td{
-      padding:10px;
-      border:1px solid rgba(255,255,255,0.1);
+    .oms-table th, .oms-table td{
+      padding:14px 18px;
       text-align:left;
-      vertical-align:top;
+      font-size:.9rem;
+      border-bottom:1px solid rgba(203,213,225,.75);
     }
-
-    #logTable th{
-      background-color:rgba(0,255,65,0.1);
-      color:var(--primary);
+    .oms-table th{
+      background:#f8fafc;
+      color:var(--text-muted);
+      text-transform:uppercase;
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.05em;
     }
+    .oms-table tbody tr:last-child td{ border-bottom:none; }
 
-    .danger-btn{
-      margin-top:18px;
-      background:var(--accent);
-      border:1px solid var(--accent);
-      color:#fff;
+    .oms-table tbody tr:not(.urgent-row):hover{ background:#f9f9f9; }
+
+    .urgent-row{ background:#fffced; }
+    .urgent-row td{ color:#856404; font-weight:800; }
+
+    /* Inputs + Buttons */
+    .search-input{
+      width:100%;
       padding:10px 14px;
-      border-radius:12px;
-      cursor:pointer;
-      width:auto;
-      font-weight:900;
-    }
-
-    .redirect-ui{
-      width:100%;
-      max-width:520px;
-      padding:0;
-      background:none;
-      border:none;
-    }
-
-    .redirect-card{
-      background:var(--card-bg);
-      backdrop-filter:blur(10px);
-      border:1px solid rgba(255,255,255,0.1);
-      border-radius:20px;
-      padding:26px;
-      text-align:center;
-    }
-
-    .redirect-card h1{
-      color:var(--primary);
-      text-shadow:0 0 20px rgba(0,255,65,0.55);
-      font-size:1.6rem;
-      margin:0 0 16px 0;
-    }
-
-    .player-preview{
-      width:100%;
-      aspect-ratio:16/9;
-      background:#000;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,0.1);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-    }
-
-    .play-btn{
-      width:70px;
-      height:70px;
-      border-radius:50%;
-      border:1px solid rgba(0,255,65,0.35);
-      background:rgba(0,255,65,0.8);
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 0 18px rgba(0,255,65,0.35);
-      transition:.2s;
-    }
-
-    .play-btn:hover{ transform:translateY(-2px); }
-
-    .play-triangle{
-      width:0; height:0;
-      border-top:14px solid transparent;
-      border-bottom:14px solid transparent;
-      border-left:24px solid #000;
-      margin-left:4px;
-    }
-
-    .redirect-card p.tiny{
-      margin:14px 0 0 0;
-      font-size:11px;
-      color:#aab4c2;
-    }
-
-    /* --- Live meta: Name / Device / Location --- */
-    .live-meta{
-      margin-top:16px;
-      background:rgba(0,0,0,0.22);
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:14px;
-      padding:12px 14px;
-      text-align:left;
-    }
-
-    .live-meta-row{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      justify-content:flex-start;
-      padding:6px 0;
-    }
-
-    .live-meta-label{
-      min-width:70px;
-      font-weight:900;
-      color:var(--primary);
-      font-size:12px;
-    }
-
-    .live-meta-value{
-      flex:1;
-      font-size:12px;
-      color:#e9eef6;
-      word-break:break-word;
-    }
-
-    /* --- New UI: Auto Link Generator --- */
-    .toggle-row{
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      gap:10px;
-      margin:10px 0;
-      padding:10px 12px;
+      border:1px solid var(--border-light);
       border-radius:10px;
-      background:rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.12);
+      font-size:.9rem;
+      box-shadow:inset 0 1px 3px rgba(0,0,0,.05);
+      transition:border-color .15s ease, box-shadow .15s ease;
+      background:var(--white);
+    }
+    .search-input:focus{
+      border-color:var(--leopards-yellow);
+      outline:none;
+      box-shadow:var(--focus);
+    }
+
+    .btn{
+      border:0;
       cursor:pointer;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:850;
+      transition:transform .05s ease, filter .15s ease, background .15s ease;
       user-select:none;
+      white-space:nowrap;
     }
 
-    .toggle-row input[type="checkbox"]{
-      width:18px;
-      height:18px;
-      accent-color:var(--primary);
-    }
+    .btn:active{ transform:translateY(1px); }
 
-    .toggle-row span{
-      font-weight:800;
+    .btn-primary{
+      background:var(--leopards-red);
+      color:var(--white);
+    }
+    .btn-primary:hover{ filter:brightness(.95); }
+
+    .btn-muted{
+      background:#7f8c8d;
       color:#fff;
-      font-size:13px;
     }
 
-    .auto-gen-textarea{
-      width:100%;
-      min-height:110px;
-      resize:vertical;
-      margin:0;
-      font-size:13px;
-      line-height:1.35;
-    }
-
-    /* --- New UI: Multi links list --- */
-    .multi-links-result{
-      text-align:left;
-    }
-
-    .multi-links-subtitle{
+    .btn-danger{
+      background:#e74c3c;
       color:#fff;
-      font-weight:900;
-      font-size:13px;
-      margin-bottom:8px;
+      padding:8px 10px;
+      font-size:.82rem;
+      border-radius:8px;
     }
 
-    .generated-links-container{
+    .btn-info{
+      background:#3498db;
+      color:#fff;
+      padding:8px 10px;
+      font-size:.82rem;
+      border-radius:8px;
+    }
+
+    /* Status pills */
+    .status-pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.75em;
+      font-weight:950;
+      text-transform:uppercase;
+      white-space:nowrap;
+      border:1px solid rgba(0,0,0,.04);
+    }
+    .status-pill.urgent{ background:var(--leopards-yellow); color:#000; }
+    .status-pill.acknowledged{ background:#d7ffd7; color:#2e7d32; }
+    .status-pill.pending{ background:#fff3cd; color:#856404; }
+    .status-pill.closed{ background:#e0f2f7; color:#0288d1; }
+    .status-pill.verified{ background:#e8f5e9; color:#388e3c; }
+
+    /* Placeholder */
+    .placeholder{
+      background:var(--white);
+      border:1px solid var(--border-light);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-card);
+      text-align:center;
+      padding:46px 22px;
+      color:var(--text-muted);
+      margin-top:20px;
+    }
+
+    /* Generic layout helpers */
+    .row{
       display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:8px;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin:12px 0 18px;
     }
 
-    .generated-link-row{
-      background:rgba(0,0,0,0.25);
-      border:1px solid rgba(255,255,255,0.08);
-      border-left:4px solid var(--primary);
-      border-radius:12px;
-      padding:10px 12px;
+    .hint{
+      color:var(--text-secondary);
+      font-weight:700;
+      font-size:.9rem;
     }
 
-    .generated-link-anchor{
-      color:var(--primary);
-      font-weight:900;
-      text-decoration:underline;
-      word-break:break-word;
-      display:block;
-      font-size:13px;
+    .upload-box{
+      border:2px dashed var(--border-light);
+      background:var(--white);
+      border-radius:14px;
+      padding:44px 20px;
+      text-align:center;
+      color:var(--text-secondary);
+      box-shadow:var(--shadow-card);
+      margin-top:16px;
     }
 
-    .generated-link-url{
-      margin-top:6px;
-      font-size:12px;
-      color:#9aa3b2;
-      word-break:break-all;
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
     }
-
-    .copy-all-btn{
-      margin-top:12px;
-    }
-
-    /* --- Improve table readability with more columns --- */
-    #logTable td, #logTable th{
-      max-width:200px;
-    }
-
-    #logTable td:nth-child(3){
-      max-width:250px;
-    }
-
-    /* keep long text from exploding layout */
-    #logTable td{
-      word-break:break-word;
-    }
-
-    /* --- Responsive tweaks --- */
-    @media (max-width: 768px){
-      body{ flex-direction:column; }
-      .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-        padding:15px;
-      }
-      .main-content{ padding:14px; }
+    @media (max-width: 980px){
+      .sidebar{ width:250px; }
+      header{ padding:16px 18px; }
+      .page{ padding:22px 16px; }
+      .grid-2{ grid-template-columns:1fr; }
+      .nav-item.sub{ padding-left:34px; }
     }
   </style>
 </head>
+
 <body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">OMS 2.0 <small>OPERATIONS SYSTEM</small></div>
 
-  <!-- Sidebar Navigation -->
-  <div id="sidebar" class="sidebar">
-    <h3>King Dash</h3>
-    <button class="nav-btn active" data-section="main-ui">Link Creator</button>
-    <button class="nav-btn" data-section="admin-dashboard">Local Logs</button>
-    
-    <div class="instruction">
-      <strong>Privacy First:</strong> Logs are stored only in your local browser storage. No IP or GPS data is captured without user interaction.
-    </div>
-  </div>
+    <div class="nav" id="navRoot">
+      <div class="nav-section-title">Menu</div>
 
-  <main class="main-content">
-    
-    <!-- Main Generator UI -->
-    <div id="main-ui" class="container active">
-      <h2>TikTok Link Creator</h2>
-      <div class="row">
-        <p class="muted">Click the button below to generate a new tracking link for TikTok.</p>
-        <button id="generateBtn" class="primary-btn">Generate TikTok Link</button>
+      <div class="nav-item active" data-tab="Home" role="button" tabindex="0">HOME</div>
+
+      <div class="nav-group" data-group="Debriefing">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          DEBRIEFING <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Debriefing" role="button" tabindex="0">DASHBOARD</div>
+          <div class="nav-item sub" data-tab="Debriefing-Add Pending" role="button" tabindex="0">ADD PENDING</div>
+          <div class="nav-item sub" data-tab="Debriefing-Add Delivered" role="button" tabindex="0">ADD DELIVERED</div>
+          <div class="nav-item sub" data-tab="Debriefing-Delete Status" role="button" tabindex="0">DELETE STATUS</div>
+        </div>
       </div>
 
-      <!-- Result Display -->
-      <div id="result" class="result hidden">
-        <!-- Single Output -->
-        <div class="single-link-result">
-          <div class="result-title">Your Generated Link:</div>
-          <div class="result-link">
-            <a id="generatedLink" href="#" target="_blank"></a>
+      <div class="nav-group" data-group="Leopards">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          LEOPARDS <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Leopards-General" role="button" tabindex="0">LEOPARDS DSE - GENERAL</div>
+          <div class="nav-item sub" data-tab="Leopards-COD Shift" role="button" tabindex="0">LEOPARDS DSE - COD SHIFT</div>
+          <div class="nav-item sub" data-tab="Leopards-OSA" role="button" tabindex="0">LEOPARDS DSE - OSA</div>
+          <div class="nav-item sub" data-tab="Leopards-Upfront Rider" role="button" tabindex="0">LEOPARDS DSE - UPFRONT RIDER</div>
+        </div>
+      </div>
+
+      <div class="nav-group" data-group="Inter Transfer">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          INTER TRANSFER <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Inter Transfer" role="button" tabindex="0">MANAGE TRANSFERS</div>
+          <div class="nav-item sub" data-tab="Inter Transfer-RTN" role="button" tabindex="0">INTER TRANSFER - RTN</div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-tab="Return to Shipper DSE" role="button" tabindex="0">RETURN TO SHIPPER DSE</div>
+      <div class="nav-item" data-tab="Rider Mobile Shipments" role="button" tabindex="0">RIDER MOBILE SHIPMENTS</div>
+      <div class="nav-item" data-tab="Mobile API Log" role="button" tabindex="0">MOBILE API LOG</div>
+      <div class="nav-item" data-tab="Update Missing Signs" role="button" tabindex="0">UPDATE MISSING SIGNS</div>
+      <div class="nav-item" data-tab="Realtime Activity" role="button" tabindex="0">REALTIME ACTIVITY</div>
+      <div class="nav-item" data-tab="Control Tower" role="button" tabindex="0">CONTROL TOWER</div>
+      <div class="nav-item" data-tab="Sheet Verification" role="button" tabindex="0">SHEET VERIFICATION</div>
+
+      <div class="nav-group" data-group="Reports">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          REPORTS <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Reports-Debriefing Report" role="button" tabindex="0">DEBRIEFING REPORT</div>
+          <div class="nav-item sub" data-tab="Reports-Assign Runsheet" role="button" tabindex="0">ASSIGN RUNSHEET</div>
+          <div class="nav-item sub" data-tab="Reports-Proof of Delivery" role="button" tabindex="0">PROOF OF DELIVERY</div>
+          <div class="nav-item sub" data-tab="Reports-OSA Assign Report" role="button" tabindex="0">OSA ASSIGN REPORT</div>
+          <div class="nav-item sub" data-tab="Reports-Missing Signatures" role="button" tabindex="0">MISSING SIGNATURES</div>
+          <div class="nav-item sub" data-tab="Reports-Missing Geo Coords" role="button" tabindex="0">MISSING GEO COORDS</div>
+          <div class="nav-item sub" data-tab="Reports-Transport Mode Report" role="button" tabindex="0">TRANSPORT MODE REPORT</div>
+          <div class="nav-item sub" data-tab="Reports-Shipper Advice Report" role="button" tabindex="0">SHIPPER ADVICE REPORT</div>
+          <div class="nav-item sub" data-tab="Reports-CN Booking Detail" role="button" tabindex="0">CN BOOKING DETAIL</div>
+          <div class="nav-item sub" data-tab="Reports-Sheet Verification" role="button" tabindex="0">SHEET VERIFICATION</div>
+          <div class="nav-item sub" data-tab="Reports-DR Server" role="button" tabindex="0">DR Server</div>
+          <div class="nav-item sub" data-tab="Reports-Runsheet Archive By CNs" role="button" tabindex="0">RUNSHEET ARCHIVE BY CNs</div>
+          <div class="nav-item sub" data-tab="Reports-Realtime Activity" role="button" tabindex="0">REALTIME ACTIVITY</div>
+          <div class="nav-item sub" data-tab="Reports-Runsheet Archive" role="button" tabindex="0">RUNSHEET ARCHIVE</div>
+          <div class="nav-item sub" data-tab="Reports-Online Assign Graph" role="button" tabindex="0">ONLINE ASSIGN GRAPH</div>
+          <div class="nav-item sub" data-tab="Reports-Online History Trend" role="button" tabindex="0">ONLINE HISTORY TREND</div>
+          <div class="nav-item sub" data-tab="Reports-QSR As Of Date" role="button" tabindex="0">QSR - AS OF DATE</div>
+          <div class="nav-item sub" data-tab="Reports-Live Field Summary" role="button" tabindex="0">LIVE FIELD SUMMARY</div>
+        </div>
+      </div>
+
+      <div class="nav-group" data-group="Summary">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          SUMMARY <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Summary-Performance" role="button" tabindex="0">PERFORMANCE SUMMARY</div>
+          <div class="nav-item sub" data-tab="Summary-Mobile Delivery" role="button" tabindex="0">MOBILE DELIVERY</div>
+          <div class="nav-item sub" data-tab="Summary-Performance Assign" role="button" tabindex="0">PERFORMANCE ASSIGN SUMMARY</div>
+          <div class="nav-item sub" data-tab="Summary-Balancesheet" role="button" tabindex="0">BALANCESHEET</div>
+          <div class="nav-item sub" data-tab="Summary-E2E" role="button" tabindex="0">E2E SUMMARY</div>
+          <div class="nav-item sub" data-tab="Summary-Hub Balance" role="button" tabindex="0">HUB BALANCE</div>
+          <div class="nav-item sub" data-tab="Summary-OSA" role="button" tabindex="0">OSA SUMMARY</div>
+          <div class="nav-item sub" data-tab="Summary-Overall" role="button" tabindex="0">OVERALL SUMMARY</div>
+          <div class="nav-item sub" data-tab="Summary-Data Upload" role="button" tabindex="0">DATA UPLOAD REPORT</div>
+        </div>
+      </div>
+
+      <div class="nav-group" data-group="Setup">
+        <div class="nav-group-header" role="button" tabindex="0" onclick="window.__oms.toggleGroup(this)">
+          SETUP <span class="chev">▼</span>
+        </div>
+        <div class="sub-menu">
+          <div class="nav-item sub" data-tab="Setup-Users" role="button" tabindex="0">USERS</div>
+          <div class="nav-item sub" data-tab="Setup-Riders" role="button" tabindex="0">RIDERS</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">© 2017 Leopards (Pvt.) Ltd.</div>
+  </aside>
+
+  <main class="main">
+    <header>
+      <div class="user-info">
+        <div>Logged in user: <strong id="userName">ayaz</strong></div>
+        <div>Station: <strong id="stationName">Attock (00035)</strong></div>
+      </div>
+      <div class="header-right">
+        <span class="expiry-tag">Password Expiry: 13-May-2026</span>
+        <span class="current-datetime" id="current-datetime"></span>
+      </div>
+    </header>
+
+    <section class="page" id="main-display"></section>
+
+    <div style="padding:12px 28px;border-top:1px solid var(--border-light);background:#fff;display:flex;justify-content:flex-end;">
+      <span style="color:#64748b;font-weight:700;">
+        Leopards (Pvt.) Ltd. © 2017 |
+        <a href="https://leopardsoms.pk" style="color:var(--leopards-red);text-decoration:none;">leopardsoms.pk</a>
+      </span>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Global namespace to avoid polluting window
+  window.__oms = window.__oms || {};
+
+  // ---------------- Mock Data ----------------
+  window.__oms.state = {
+    exceptions: [
+      { id:'1', shipmentId:'AT10293840', reason:'Address Incomplete', status:'Urgent' },
+      { id:'2', shipmentId:'AT10293850', reason:'Customer Refused', status:'Urgent' },
+      { id:'3', shipmentId:'AT10293860', reason:'Vehicle Breakdown', status:'Urgent' },
+      { id:'4', shipmentId:'AT10293841', reason:'Address Incomplete', status:'Urgent' },
+      { id:'5', shipmentId:'AT10293851', reason:'Customer Refused', status:'Urgent' },
+      { id:'6', shipmentId:'AT10293861', reason:'Vehicle Breakdown', status:'Urgent' }
+    ],
+    runSheets: [
+      { id:'RS-001', courier:'Zahid Khan', total:45, delivered:40, status:'Pending' },
+      { id:'RS-002', courier:'Imran Ali', total:30, delivered:30, status:'Closed' },
+      { id:'RS-003', courier:'Ali Raza', total:50, delivered:48, status:'Pending' },
+      { id:'RS-004', courier:'Kamran Khan', total:35, delivered:32, status:'Pending' }
+    ]
+  };
+
+  // ---------------- Helpers ----------------
+  __oms.byId = (id) => document.getElementById(id);
+
+  __oms.escape = (v) => String(v ?? '');
+
+  __oms.updateDateTime = () => {
+    const now = new Date();
+    const options = { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+    __oms.byId('current-datetime').textContent = now.toLocaleDateString('en-US', options);
+  };
+
+  __oms.toggleGroup = (el) => {
+    const group = el.closest('.nav-group');
+    if (!group) return;
+    group.classList.toggle('open');
+  };
+
+  __oms.setActiveNav = (tab) => {
+    document.querySelectorAll('.nav-item').forEach(el => {
+      const elTab = el.getAttribute('data-tab');
+      el.classList.toggle('active', elTab === tab);
+    });
+  };
+
+  __oms.switchTab = (tabName) => {
+    __oms.setActiveNav(tabName);
+
+    const display = __oms.byId('main-display');
+    const render = __oms.pages[tabName] || (() => __oms.renderGenericPlaceholder(tabName, "This module is currently under development or configuration."));
+    display.innerHTML = render();
+    // After re-render, attach page-level handlers safely
+    __oms.hydratePage(tabName);
+  };
+
+  // Status pill
+  __oms.renderStatusPill = (status) => {
+    const s = String(status || '').toLowerCase();
+    const cls =
+      s === 'urgent' ? 'urgent' :
+      s === 'acknowledged' ? 'acknowledged' :
+      s === 'pending' ? 'pending' :
+      s === 'closed' ? 'closed' :
+      s === 'verified' ? 'verified' : 'pending';
+    return `<span class="status-pill ${cls}">${__oms.escape(status)}</span>`;
+  };
+
+  __oms.renderGenericPlaceholder = (title, description) => {
+    return `<div class="placeholder"><h2 style="font-size:1.35rem;margin-bottom:10px;color:var(--text-main);">${__oms.escape(title)}</h2><p style="color:var(--text-secondary);font-weight:650;">${__oms.escape(description)}</p></div>`;
+  };
+
+  // ---------------- Pages ----------------
+  __oms.pages = {
+    Home: () => {
+      const urgentCount = __oms.state.exceptions.filter(e => e.status === 'Urgent').length;
+      const metrics = `
+        <div class="card metric">
+          <h4>Active Couriers</h4>
+          <div class="value">18</div>
+        </div>
+        <div class="card metric">
+          <h4>Deliveries Today</h4>
+          <div class="value">450</div>
+        </div>
+        <div class="card metric">
+          <h4>Success Rate</h4>
+          <div class="value">94%</div>
+        </div>
+        <div class="card metric">
+          <h4>Urgent Exceptions</h4>
+          <div class="value">${urgentCount}</div>
+        </div>
+      `;
+      return `
+        <h2>Home Dashboard</h2>
+        <h3>Operational Overview</h3>
+        <div class="metrics-grid">${metrics}</div>
+        <div class="placeholder" style="text-align:left;">
+          <h2 style="font-size:1.25rem;color:var(--text-main);margin-bottom:8px;">Welcome to Leopards OMS 2.0</h2>
+          <p class="hint">
+            Station: <strong style="color:var(--text-main);">${__oms.escape(document.getElementById('stationName').textContent)}</strong>.
+            Authorized access only. Use the operations menu to book new shipments or manage manifests.
+          </p>
+        </div>
+      `;
+    },
+
+    Debriefing: () => {
+      const runSheetsRows = __oms.state.runSheets.map(rs => `
+        <tr>
+          <td style="font-weight:900;">${__oms.escape(rs.id)}</td>
+          <td>${__oms.escape(rs.courier)}</td>
+          <td style="font-weight:900;">${rs.delivered}/${rs.total}</td>
+          <td>${__oms.renderStatusPill(rs.status === 'Closed' ? 'Closed' : 'Pending')}</td>
+          <td>
+            ${rs.status === 'Pending'
+              ? `<button class="btn btn-primary" data-action="close-sheet" data-id="${__oms.escape(rs.id)}">Close Sheet</button>`
+              : `<button class="btn btn-muted" data-action="view-sheet" data-id="${__oms.escape(rs.id)}">View</button>`
+            }
+          </td>
+        </tr>
+      `).join('');
+
+      return `
+        <h2>Debriefing - Run Sheet Closure</h2>
+        <h3>Update shipment statuses and close daily courier run sheets.</h3>
+
+        <div class="row">
+          <div style="flex:1;min-width:260px;">
+            <input class="search-input" id="runSheetSearch" placeholder="Search Run Sheet ID (e.g., RS-001)..." />
           </div>
-          <button id="copyBtn" class="copy-btn">Copy Link</button>
+          <div>
+            <button class="btn btn-primary" id="clearRunSheet" style="background:#be123c;">Clear</button>
+          </div>
         </div>
 
-        <!-- Multi Output -->
-        <div class="multi-links-result hidden">
-          <div class="multi-links-subtitle">Batch Results:</div>
-          <div id="generatedLinksContainer" class="generated-links-container"></div>
-          <button id="copyAllBtn" class="copy-btn copy-all-btn">Copy All Links</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Local Admin Dashboard -->
-    <div id="admin-dashboard" class="admin-section">
-      <h2>Local Activity Logs</h2>
-      <p class="muted">This data is stored locally in your browser cache.</p>
-      <div class="table-wrap">
-        <table id="logTable">
+        <table class="oms-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Target</th>
-              <th>Video</th>
-              <th>Time</th>
-              <th>Device</th>
-              <th>Battery</th>
-              <th>Location Note</th>
+              <th>Run Sheet ID</th>
+              <th>Courier</th>
+              <th>Load</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
-          <tbody id="logBody">
-            <!-- Logs injected by JS -->
-          </tbody>
+          <tbody id="runsheet-table-body">${runSheetsRows}</tbody>
         </table>
+      `;
+    },
+
+    "Realtime Activity": () => `
+      <h2>Realtime Activity Monitoring</h2>
+      <h3>Live Tracking & Metrics</h3>
+      <div class="metrics-grid">
+        <div class="card metric"><h4>In Field</h4><div class="value">12</div></div>
+        <div class="card metric"><h4>Delays</h4><div class="value">2</div></div>
+        <div class="card metric"><h4>Delivered</h4><div class="value">142</div></div>
       </div>
-      <button id="clearBtn" class="danger-btn">Clear Local Logs</button>
-    </div>
-
-    <!-- Redirect/Player Interface -->
-    <div id="redirect-ui" class="redirect-ui hidden">
-      <div class="redirect-card">
-        <h1 id="redirect-header">Video Player</h1>
-        <div class="player-preview">
-          <button id="playBtn" class="play-btn">
-            <div class="play-triangle"></div>
-          </button>
-        </div>
-        <p id="redirect-subtext" class="muted">Ready...</p>
-
-        <div class="live-meta">
-          <div class="live-meta-row"><span class="live-meta-label">Label:</span> <span id="liveName" class="live-meta-value">-</span></div>
-          <div class="live-meta-row"><span class="live-meta-label">Device:</span> <span id="liveDevice" class="live-meta-value">-</span></div>
-          <div class="live-meta-row"><span class="live-meta-label">Location:</span> <span id="liveLocation" class="live-meta-value">-</span></div>
-        </div>
-        <p class="tiny">Privacy Notice: Clicking play verifies the local device environment.</p>
+      <div class="placeholder" style="height:320px;display:flex;align-items:center;justify-content:center;">
+        <p style="font-weight:900;color:var(--text-secondary);">[ Real-time GPS Map Visualization & Courier Status ]</p>
       </div>
-    </div>
+    `,
 
-  </main>
-
-  <script>
-    /* Privacy-first local dashboard
-       - No IP/device/GPS capture (we only store minimal local info)
-       - Logs are stored only in this browser via localStorage
-    */
-
-    (function () {
-      const LOG_KEY = 'king_logs';
-      const MAX_LOGS = 50;
-
-      const els = {
-        sidebar: document.getElementById('sidebar'),
-        mainUi: document.getElementById('main-ui'),
-        adminDashboard: document.getElementById('admin-dashboard'),
-        redirectUi: document.getElementById('redirect-ui'),
-        logBody: document.getElementById('logBody'),
-
-        generateBtn: document.getElementById('generateBtn'),
-        copyBtn: document.getElementById('copyBtn'),
-        generatedLink: document.getElementById('generatedLink'),
-        result: document.getElementById('result'),
-
-        autoGenToggle: document.getElementById('autoGenToggle'), // May be null now
-        autoGenText: document.getElementById('autoGenText'),
-        multiLinksResult: document.querySelector('.multi-links-result'),
-        singleLinkResult: document.querySelector('.single-link-result'),
-        generatedLinksContainer: document.getElementById('generatedLinksContainer'),
-        copyAllBtn: document.getElementById('copyAllBtn'),
-
-        // redirect UI
-        redirectSubtext: document.getElementById('redirect-subtext'),
-        playBtn: document.getElementById('playBtn'),
-        clearBtn: document.getElementById('clearBtn'),
-        redirectHeader: document.getElementById('redirect-header'),
-
-        // live meta
-        liveName: document.getElementById('liveName'),
-        liveDevice: document.getElementById('liveDevice'),
-        liveLocation: document.getElementById('liveLocation'),
-      };
-
-      function safeJsonParse(str) {
-        try {
-          return JSON.parse(str);
-        } catch {
-          return null;
-        }
-      }
-
-      function encodeConfig(config) {
-        const json = JSON.stringify(config);
-        return btoa(unescape(encodeURIComponent(json)));
-      }
-
-      function decodeConfig(encoded) {
-        const json = decodeURIComponent(escape(atob(encoded)));
-        return safeJsonParse(json);
-      }
-
-      function getBaseUrlWithoutQuery() {
-        return window.location.href.split('?')[0];
-      }
-
-      function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(String(str)));
-        return div.innerHTML;
-      }
-
-      function setActiveSection(sectionId) {
-        document.querySelectorAll('.container, .admin-section').forEach((el) => {
-          el.classList.remove('active');
-        });
-        document.querySelectorAll('.nav-btn').forEach((el) => {
-          el.classList.remove('active');
-        });
-
-        const sectionEl = document.getElementById(sectionId);
-        if (sectionEl) sectionEl.classList.add('active');
-
-        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
-        if (activeBtn) activeBtn.classList.add('active');
-      }
-
-      function getLogs() {
-        const raw = localStorage.getItem(LOG_KEY);
-        const parsed = safeJsonParse(raw || '[]');
-        if (!Array.isArray(parsed)) return [];
-        return parsed;
-      }
-
-      function saveLogLocally(entry) {
-        const logs = getLogs();
-        logs.unshift(entry);
-        localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, MAX_LOGS)));
-      }
-
-      function formatTime(iso) {
-        try {
-          return new Date(iso).toLocaleString();
-        } catch {
-          return String(iso || '');
-        }
-      }
-
-      function summarizeVideoUrl(url) {
-        if (!url) return 'N/A';
-        try {
-          const u = new URL(url);
-          const host = u.host.replace(/^www\./, '');
-          const path = u.pathname.length > 26 ? `${u.pathname.slice(0, 26)}…` : u.pathname;
-          return `${host}${path}`;
-        } catch {
-          return url.length > 38 ? `${url.slice(0, 38)}…` : url;
-        }
-      }
-
-      function getDefaultLocationNote() {
-        // Keeping privacy-first: no geolocation/GPS collection here.
-        return 'No GPS/IP location collected (local privacy mode)';
-      }
-
-      function formatLatLng(lat, lng) {
-        if (typeof lat !== 'number' || typeof lng !== 'number') return '-';
-        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      }
-
-      function formatLocationFromPosition(pos) {
-        if (!pos || !pos.coords) return getDefaultLocationNote();
-        const { latitude, longitude, accuracy } = pos.coords;
-
-        const accM = typeof accuracy === 'number' ? Math.round(accuracy) : null;
-        const accText = accM != null && accM > 0 ? ` (±${accM}m)` : '';
-
-        const ts = pos.timestamp ? new Date(pos.timestamp).toLocaleTimeString() : '';
-        const timeText = ts ? ` @ ${ts}` : '';
-
-        return `${formatLatLng(latitude, longitude)}${accText}${timeText}`;
-      }
-
-      function getDeviceNote() {
-        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-        const uaShort = ua ? ua.slice(0, 80) + (ua.length > 80 ? '…' : '') : 'Unknown UA';
-        const w = window?.screen?.width;
-        const h = window?.screen?.height;
-
-        const screenText = typeof w === 'number' && typeof h === 'number' ? `${w}x${h}` : 'screen n/a';
-        return `UA: ${uaShort} | Screen: ${screenText}`;
-      }
-
-      function setLiveMeta({ name, device, location } = {}) {
-        if (els.liveName && typeof name === 'string') els.liveName.textContent = name;
-        if (els.liveDevice && typeof device === 'string') els.liveDevice.textContent = device;
-        if (els.liveLocation && typeof location === 'string') els.liveLocation.textContent = location;
-      }
-
-      function startLiveGeolocationWatch({ enableHighAccuracy = true } = {}) {
-        if (typeof navigator === 'undefined' || !navigator.geolocation || typeof navigator.geolocation.watchPosition !== 'function') {
-          setLiveMeta({ location: getDefaultLocationNote() });
-          return {
-            stop: () => {},
-            getLocationNote: () => getDefaultLocationNote(),
-          };
-        }
-
-        let watchId = null;
-        let latestPos = null;
-        let lastErrorNote = null;
-
-        setLiveMeta({ location: 'Requesting location…' });
-
-        watchId = navigator.geolocation.watchPosition(
-          (pos) => {
-            latestPos = pos;
-            lastErrorNote = null;
-            setLiveMeta({ location: formatLocationFromPosition(pos) });
-          },
-          (err) => {
-            const note = err?.code === 1
-              ? 'Location permission denied'
-              : err?.message
-                ? `Location error: ${err.message}`
-                : 'Location unavailable';
-
-            lastErrorNote = note;
-            setLiveMeta({ location: note });
-          },
-          {
-            enableHighAccuracy,
-            maximumAge: 0,
-          }
-        );
-
-        return {
-          stop: () => {
-            if (watchId == null) return;
-            try {
-              navigator.geolocation.clearWatch(watchId);
-            } catch {
-              // ignore
+    "Control Tower": () => {
+      const rows = __oms.state.exceptions.map(ex => `
+        <tr class="${ex.status === 'Urgent' ? 'urgent-row' : ''}">
+          <td><strong>${__oms.escape(ex.shipmentId)}</strong></td>
+          <td>${__oms.escape(ex.reason)}</td>
+          <td>${__oms.renderStatusPill(ex.status)}</td>
+          <td>
+            ${ex.status === 'Urgent'
+              ? `<button class="btn btn-primary" data-action="acknowledge" data-id="${__oms.escape(ex.id)}">Acknowledge</button>`
+              : `<button class="btn btn-muted" data-action="view-exception" data-id="${__oms.escape(ex.id)}">View</button>`
             }
-          },
-          getLocationNote: () => {
-            if (lastErrorNote) return lastErrorNote;
-            if (!latestPos) return getDefaultLocationNote();
-            return formatLocationFromPosition(latestPos);
-          },
-        };
-      }
+          </td>
+        </tr>
+      `).join('');
 
-      async function getBatteryNote() {
-        // Battery "health" is not available via standard Battery API.
-        // We record battery level if available in this browser.
-        const hasApi = typeof navigator !== 'undefined' && typeof navigator.getBattery === 'function';
-        if (!hasApi) return 'Battery level not available';
+      return `
+        <h2>Control Tower - Exceptions & Escalations</h2>
+        <h3>Central hub for monitoring performance exceptions and handling urgent issues.</h3>
 
-        try {
-          const battery = await navigator.getBattery();
-          const levelPct = Math.round((battery.level || 0) * 100);
-          const charging = Boolean(battery.charging);
-          const status = charging ? 'Charging' : 'Not charging';
-          return `Level: ${levelPct}% (${status})`;
-        } catch {
-          return 'Battery level not available';
-        }
-      }
+        <div class="row">
+          <div style="flex:1;min-width:260px;">
+            <input class="search-input" id="shipmentSearch" placeholder="Search Shipment ID (e.g., AT10293840)..." />
+          </div>
+          <div>
+            <button class="btn btn-primary" id="clearShipment" style="background:#be123c;">Clear</button>
+          </div>
+        </div>
 
-      function renderLogs() {
-        const logs = getLogs();
-        els.logBody.innerHTML = '';
+        <table class="oms-table">
+          <thead>
+            <tr>
+              <th>Shipment ID</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="exception-table-body">${rows}</tbody>
+        </table>
+      `;
+    },
 
-        if (logs.length === 0) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td colspan="8" style="color:#8b93a3; padding:14px;">
-              No local activity logs yet.
+    "Sheet Verification": () => `
+      <h2>Sheet Verification</h2>
+      <h3>Validation of courier run sheets and delivery records to prevent documentation errors.</h3>
+      <div class="placeholder" style="text-align:left;">
+        <h2 style="font-size:1.1rem;color:var(--text-main);margin-bottom:8px;">No sheets pending</h2>
+        <p class="hint">No sheets pending for manual verification at this moment.</p>
+      </div>
+    `,
+
+    "Debriefing-Add Pending": () => {
+      const today = new Date().toISOString().split('T')[0];
+      return `
+        <h2>Debriefing: Pending Returns Scan</h2>
+        <h3>RIDER RETURN DEBRIEFING</h3>
+
+        <div class="card" style="padding:18px;">
+          <div class="grid-2">
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:#9f1239;font-weight:900;text-transform:uppercase;font-size:.78rem;">Station</label>
+              <input class="search-input" value="ATTOCK" disabled />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:#9f1239;font-weight:900;text-transform:uppercase;font-size:.78rem;">Date</label>
+              <input class="search-input" type="date" value="${today}" />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:#9f1239;font-weight:900;text-transform:uppercase;font-size:.78rem;">Emp #</label>
+              <input class="search-input" placeholder="Rider ID" />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:#9f1239;font-weight:900;text-transform:uppercase;font-size:.78rem;">Emp Name</label>
+              <input class="search-input" placeholder="Rider Name" />
+            </div>
+          </div>
+
+          <div style="margin-top:18px;background:#fff5f5;border:2px dashed #feb2b2;border-radius:14px;padding:18px;text-align:center;">
+            <div class="hint" style="color:#c53030;font-weight:950;text-transform:uppercase;font-size:.92rem;">Scan Returned Shipment (CN#)</div>
+            <input class="search-input" id="cnReturnScan" placeholder="SCAN CN HERE..." style="margin-top:10px;font-size:1.2rem;text-align:center;border-color:#fc8181;" />
+          </div>
+
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid #f1f5f9;">
+            <div class="grid-2">
+              ${[
+                ["Group Status","select","-SELECT-"],
+                ["Child Status","select","-SELECT-"],
+                ["Robo Resp","text",""],
+                ["Way Forward","text",""],
+                ["Status","select","-SELECT-"],
+                ["Preferred Date","date",""],
+                ["Attempt Time","time",""],
+                ["Address","text",""]
+              ].map(([label,type,placeholder]) => `
+                <div>
+                  <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">${label}</label>
+                  ${
+                    type === 'select'
+                      ? `<select class="search-input"><option value="">${placeholder}</option></select>`
+                      : `<input class="search-input" type="${type}" ${placeholder ? `placeholder="${placeholder}"` : ''} />`
+                  }
+                </div>
+              `).join('')}
+            </div>
+
+            <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+              <button class="btn btn-primary" style="background:var(--leopards-red);padding:14px 42px;border-radius:14px;letter-spacing:1px;box-shadow:0 10px 15px -3px rgba(190,18,60,.20);">
+                UPLOADING..!
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 16px;border-left:4px solid var(--leopards-red);display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-weight:950;color:var(--text-main);">INPROGRESS & UN-DELIVERED (Mobile APP)</div>
+              <div class="hint">Count: <strong style="color:var(--leopards-red);">0</strong></div>
+            </div>
+            <div style="padding:12px 16px 18px;">
+              <div class="hint" style="font-style:italic;color:var(--text-muted);text-align:center;padding:26px 0;">No Data</div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 16px;border-left:4px solid #22c55e;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-weight:950;color:var(--text-main);">UPDATED - DEBRIEFING</div>
+              <div class="hint">Count: <strong style="color:#22c55e;">0</strong></div>
+            </div>
+            <div style="padding:12px 16px 18px;">
+              <div class="hint" style="font-style:italic;color:var(--text-muted);text-align:center;padding:26px 0;">No Data</div>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    "Debriefing-Add Delivered": () => {
+      const today = new Date().toISOString().split('T')[0];
+      return `
+        <h2>Rider Delivery Debriefing (Delivered Scan)</h2>
+        <h3>RIDER DEBRIEFING - DELIVERED SCAN</h3>
+
+        <div class="card" style="padding:18px;">
+          <div class="grid-2">
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Station</label>
+              <input class="search-input" value="ATTOCK" disabled />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Delivery Date</label>
+              <input class="search-input" type="date" value="${today}" />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Rider / Emp #</label>
+              <input class="search-input" placeholder="Scan ID Card" />
+            </div>
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Rider Name</label>
+              <input class="search-input" placeholder="Verified Name" />
+            </div>
+          </div>
+
+          <div style="margin-top:18px;background:#f0fdf4;border:2px dashed #86efac;border-radius:14px;padding:18px;text-align:center;">
+            <div class="hint" style="color:#166534;font-weight:950;text-transform:uppercase;font-size:.92rem;">Scan Delivered Shipment (CN#)</div>
+            <input class="search-input" id="cnDeliveredScan" placeholder="SCAN CN HERE..." style="margin-top:10px;font-size:1.2rem;text-align:center;border-color:#4ade80;" />
+          </div>
+
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid #f1f5f9;">
+            <div class="grid-2">
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Receiver Relation</label>
+                <select class="search-input">
+                  <option value="">-- Select Relation --</option>
+                  <option>SELF</option>
+                  <option>FAMILY</option>
+                  <option>STAFF</option>
+                  <option>GUARD</option>
+                  <option>NEIGHBOR</option>
+                </select>
+              </div>
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:900;text-transform:uppercase;font-size:.78rem;">Receiver Name / Contact</label>
+                <input class="search-input" placeholder="Name or Phone..." />
+              </div>
+            </div>
+
+            <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+              <button class="btn btn-primary" style="background:#059669;padding:14px 42px;border-radius:14px;font-size:1.05rem;box-shadow:0 10px 15px -3px rgba(5,150,105,.20);">
+                SAVE DELIVERED SHIPMENT
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;" class="card">
+          <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;font-weight:950;color:var(--text-main);">
+              <span style="background:#059669;color:#fff;padding:4px 10px;border-radius:8px;font-size:.78rem;">SCANNED LIST</span>
+              Successfully Delivered in this Session
+            </div>
+            <div class="hint">Total Delivered: <strong style="color:#059669;">0</strong></div>
+          </div>
+          <div style="padding:18px 16px;">
+            <div class="hint" style="font-style:italic;color:var(--text-muted);text-align:center;padding:26px 0;">
+              No shipments scanned yet. Start scanning to populate this list.
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    "Debriefing-Delete Status": () => {
+      return `
+        <h2>Debriefing: Delete Status</h2>
+        <h3>Note: By default, the data will be sorted on 'status datetime' entered by staff.</h3>
+
+        <div class="card" style="padding:18px;margin-top:10px;">
+          <div class="grid-2">
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Search CN</label>
+              <input class="search-input" id="cnSearchInput" placeholder="Enter CN and press Enter..." />
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <div class="hint" style="width:100%;color:var(--text-secondary);">Aging (Last AC to RC):</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <table class="oms-table">
+            <thead>
+              <tr>
+                <th>Sr#</th>
+                <th>CN Number</th>
+                <th>Route Date</th>
+                <th>Status Date</th>
+                <th>Status</th>
+                <th>Reason / Receiver (Relation)</th>
+                <th>Action</th>
+                <th>Rout - Officer</th>
+                <th>Station</th>
+                <th>Username</th>
+                <th>Status Updated On</th>
+                <th>Pic</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="delete-status-table-body">
+              <tr><td colspan="13" style="text-align:center;padding:40px;color:var(--text-muted);font-weight:750;">No Record..!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  };
+
+  // Report placeholders
+  const makeReportPage = (title) => () => `
+    <h2>Reports: ${__oms.escape(title)}</h2>
+    <h3>Generating detailed reports for ${__oms.escape(title)}.</h3>
+    <div class="placeholder" style="text-align:left;">
+      <p style="color:var(--text-secondary);font-weight:700;">
+        Report content for <strong>${__oms.escape(title)}</strong> will appear here.
+      </p>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary">Generate Report</button>
+      </div>
+    </div>
+  `;
+
+  const makeSummaryPage = (title) => () => `
+    <h2>${__oms.escape(title)} Summary</h2>
+    <h3>Operational summary views.</h3>
+    <div class="placeholder" style="text-align:left;">
+      <p style="color:var(--text-secondary);font-weight:700;">
+        Summary content for <strong>${__oms.escape(title)}</strong> will appear here.
+      </p>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary">Generate Summary</button>
+      </div>
+    </div>
+  `;
+
+  // Dynamically handle report/summary/setup pages
+  (function registerDynamicPages(){
+    const register = (tab, fn) => { __oms.pages[tab] = fn; };
+
+    // Reports
+    [
+      "Reports-Debriefing Report","Reports-Assign Runsheet","Reports-Proof of Delivery","Reports-OSA Assign Report",
+      "Reports-Missing Signatures","Reports-Missing Geo Coords","Reports-Transport Mode Report","Reports-Shipper Advice Report",
+      "Reports-CN Booking Detail","Reports-Sheet Verification","Reports-DR Server","Reports-Runsheet Archive By CNs",
+      "Reports-Realtime Activity","Reports-Runsheet Archive","Reports-Online Assign Graph","Reports-Online History Trend",
+      "Reports-QSR As Of Date","Reports-Live Field Summary"
+    ].forEach(tab=>{
+      const title = tab.replace('Reports-','').replace(' Reports','');
+      register(tab, makeReportPage(title));
+    });
+
+    // Summary
+    [
+      "Summary-Performance","Summary-Mobile Delivery","Summary-Performance Assign","Summary-Balancesheet",
+      "Summary-E2E","Summary-Hub Balance","Summary-OSA","Summary-Overall","Summary-Data Upload"
+    ].forEach(tab=>{
+      const title = tab.replace('Summary-','');
+      register(tab, makeSummaryPage(title));
+    });
+
+    // Setup
+    register("Setup-Users", () => __oms.renderGenericPlaceholder("Setup: Users Management", "Manage user accounts and permissions."));
+    register("Setup-Riders", () => __oms.renderGenericPlaceholder("Setup: Riders Management", "Manage rider profiles and assignments."));
+
+    // Leopards + other placeholders
+    [
+      "Leopards-General","Leopards-COD Shift","Leopards-OSA","Leopards-Upfront Rider",
+      "Inter Transfer","Inter Transfer-RTN","Return to Shipper DSE","Rider Mobile Shipments",
+      "Mobile API Log","Update Missing Signs"
+    ].forEach(tab=>{
+      __oms.pages[tab] = () => __oms.renderGenericPlaceholder(tab, "This module is currently under development or configuration.");
+    });
+  })();
+
+  // ---------------- Page Hydration ----------------
+  __oms.hydratePage = (tabName) => {
+    // Debriefing run sheet search
+    if (tabName === 'Debriefing') {
+      const input = __oms.byId('runSheetSearch');
+      const clearBtn = __oms.byId('clearRunSheet');
+      const body = __oms.byId('runsheet-table-body');
+
+      const renderRows = (list) => {
+        body.innerHTML = list.map(rs => `
+          <tr>
+            <td style="font-weight:900;">${__oms.escape(rs.id)}</td>
+            <td>${__oms.escape(rs.courier)}</td>
+            <td style="font-weight:900;">${rs.delivered}/${rs.total}</td>
+            <td>${__oms.renderStatusPill(rs.status === 'Closed' ? 'Closed' : 'Pending')}</td>
+            <td>
+              ${rs.status === 'Pending'
+                ? `<button class="btn btn-primary" data-action="close-sheet" data-id="${__oms.escape(rs.id)}">Close Sheet</button>`
+                : `<button class="btn btn-muted" data-action="view-sheet" data-id="${__oms.escape(rs.id)}">View</button>`
+              }
             </td>
-          `;
-          els.logBody.appendChild(tr);
-          return;
-        }
-
-        for (const log of logs) {
-          const tr = document.createElement('tr');
-
-          const name = escapeHtml(log.link_label ?? 'Unnamed');
-          const phone = escapeHtml(log.target_phone ?? 'N/A');
-          const video = escapeHtml(summarizeVideoUrl(log.video_url ?? log.redirect_url ?? ''));
-          const time = escapeHtml(formatTime(log.timestamp));
-
-          const device = escapeHtml(log.device_note ?? (log.user_agent_present ? 'Browser UA available' : 'Unknown device'));
-          const battery = escapeHtml(log.battery_note ?? 'Battery info not recorded');
-          const location = escapeHtml(log.location_note ?? getDefaultLocationNote());
-
-          const action = escapeHtml(log.action_note ?? 'Saved locally');
-
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${phone}</td>
-            <td>${video}</td>
-            <td>${time}</td>
-            <td>${device}</td>
-            <td>${battery}</td>
-            <td>${location}</td>
-            <td style="color:#00ff41; font-weight:700;">${action}</td>
-          `;
-
-          els.logBody.appendChild(tr);
-        }
-      }
-
-      function copyTextToClipboard(text) {
-        if (!text) return Promise.resolve(false);
-        if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') return Promise.resolve(false);
-
-        return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
-      }
-
-      function copyLink() {
-        const link = els.generatedLink?.href || '';
-        if (!link) return;
-
-        copyTextToClipboard(link).then((ok) => {
-          if (!ok) {
-            alert('Clipboard permission denied. Copy the link manually.');
-            return;
-          }
-          const btn = els.copyBtn;
-          const original = btn.textContent;
-          btn.textContent = 'Copied! ✅';
-          setTimeout(() => {
-            btn.textContent = original;
-          }, 2000);
-        });
-      }
-
-      function parseAutoUrls(textareaValue) {
-        if (!textareaValue) return [];
-        const lines = String(textareaValue)
-          .split(/\r?\n/)
-          .map((s) => s.trim())
-          .filter(Boolean);
-
-        // Validate URLs loosely but avoid breaking for non-URLs.
-        const cleaned = [];
-        for (const line of lines) {
-          try {
-            cleaned.push(new URL(line).toString());
-          } catch {
-            // ignore invalid line
-          }
-        }
-        // remove duplicates
-        return Array.from(new Set(cleaned));
-      }
-
-      function generateConfigBase() {
-        return { n: 'TikTok Promo', p: 'N/A', m: 'Opening TikTok...' };
-      }
-
-      function generateSingleLocalLink() {
-        const configBase = generateConfigBase();
-        const videoUrl = 'https://www.tiktok.com';
-        const config = { ...configBase, u: videoUrl, i: 1 };
-        const baseUrl = getBaseUrlWithoutQuery();
-        const encoded = encodeConfig(config);
-        const trackingLink = `${baseUrl}?session=${encodeURIComponent(encoded)}`;
-
-        return trackingLink;
-      }
-
-      function generateMultiLocalLinks() {
-        const configBase = generateConfigBase();
-        const list = parseAutoUrls(els.autoGenText?.value || '');
-
-        if (list.length === 0) {
-          alert('Please paste at least one valid video URL (one per line).');
-          els.autoGenText?.focus();
-          return [];
-        }
-
-        const baseUrl = getBaseUrlWithoutQuery();
-        const links = [];
-
-        list.forEach((videoUrl, idx) => {
-          const config = {
-            ...configBase,
-            // Unique per-video session config
-            u: videoUrl,
-            i: idx + 1,
-          };
-          const encoded = encodeConfig(config);
-          const trackingLink = `${baseUrl}?session=${encodeURIComponent(encoded)}`;
-          links.push({ trackingLink, videoUrl, index: idx + 1 });
-        });
-
-        return links;
-      }
-
-      function scrollToResult() {
-        if (!els.result) return;
-        try {
-          els.result.scrollIntoView({ behavior: 'auto', block: 'center' });
-        } catch {
-          // ignore
-        }
-      }
-
-      function showSingleResult(link) {
-        els.result.classList.remove('hidden');
-
-        if (els.singleLinkResult) els.singleLinkResult.classList.remove('hidden');
-        if (els.multiLinksResult) els.multiLinksResult.classList.add('hidden');
-
-        els.generatedLink.href = link;
-        els.generatedLink.innerText = link;
-
-        scrollToResult();
-      }
-
-      function showMultiResult(items) {
-        els.result.classList.remove('hidden');
-
-        if (els.singleLinkResult) els.singleLinkResult.classList.add('hidden');
-        if (els.multiLinksResult) els.multiLinksResult.classList.remove('hidden');
-
-        els.generatedLinksContainer.innerHTML = '';
-
-        for (const item of items) {
-          const row = document.createElement('div');
-          row.className = 'generated-link-row';
-
-          const hostText = escapeHtml(summarizeVideoUrl(item.videoUrl));
-          const a = document.createElement('a');
-          a.href = item.trackingLink;
-          a.target = '_blank';
-          a.rel = 'noreferrer';
-          a.className = 'generated-link-anchor';
-          a.textContent = `#${item.index} - ${hostText}`;
-
-          const small = document.createElement('div');
-          small.className = 'generated-link-url';
-          small.textContent = item.trackingLink;
-
-          row.appendChild(a);
-          row.appendChild(small);
-          els.generatedLinksContainer.appendChild(row);
-        }
-
-        scrollToResult();
-      }
-
-      function collectAllMultiLinks(items) {
-        return items.map((it) => it.trackingLink).join('\n');
-      }
-
-      function showRedirectUi(config) {
-        if (els.mainUi) els.mainUi.style.display = 'none';
-        if (els.adminDashboard) els.adminDashboard.style.display = 'none';
-        if (els.sidebar) els.sidebar.style.display = 'none';
-
-        els.redirectUi.classList.remove('hidden');
-
-        const header = (config && config.u) ? `Video Player` : 'Video Player';
-        if (els.redirectHeader) els.redirectHeader.textContent = header;
-
-        els.redirectSubtext.textContent = config?.m || 'Ready...';
-
-        window.__KING_LOCAL_CONFIG__ = config;
-      }
-
-      function hideRedirectUi() {
-        if (els.mainUi) els.mainUi.style.display = '';
-        if (els.adminDashboard) els.adminDashboard.style.display = '';
-        if (els.sidebar) els.sidebar.style.display = '';
-
-        els.redirectUi.classList.add('hidden');
-        window.__KING_LOCAL_CONFIG__ = null;
-      }
-
-      async function playAndRecord() {
-        const config = window.__KING_LOCAL_CONFIG__;
-        if (!config) return;
-
-        const userAgentPresent = Boolean(navigator.userAgent);
-        const deviceNote = getDeviceNote();
-        const name = config.n || 'Unnamed';
-
-        // show live meta immediately
-        setLiveMeta({
-          name,
-          device: deviceNote,
-          location: 'Waiting for location…',
-        });
-
-        els.playBtn.disabled = true;
-        els.playBtn.style.opacity = '0.7';
-
-        // Keep watching for a few seconds so UI truly updates in real-time.
-        const watch = startLiveGeolocationWatch({ enableHighAccuracy: true });
-        const maxWaitMs = 8000;
-
-        await new Promise((r) => setTimeout(r, maxWaitMs));
-        watch.stop();
-
-        const batteryNote = await getBatteryNote();
-
-        const payload = {
-          link_label: name,
-          target_phone: config.p || 'N/A',
-          video_url: config.u,
-          redirect_url: config.u,
-          timestamp: new Date().toISOString(),
-
-          location_note: watch.getLocationNote(),
-
-          device_note: deviceNote,
-          user_agent_present: userAgentPresent,
-
-          battery_note: batteryNote,
-          action_note: 'Saved locally',
-        };
-
-        saveLogLocally(payload);
-
-        setTimeout(() => {
-          const targetUrl = payload.redirect_url || 'https://www.youtube.com';
-          window.location.href = targetUrl;
-        }, 250);
-      }
-
-      function clearLogs() {
-        if (!confirm('Clear local logs for this browser?')) return;
-        localStorage.removeItem(LOG_KEY);
-        renderLogs();
-      }
-
-      function initNavigation() {
-        document.querySelectorAll('.nav-btn').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const sectionId = btn.getAttribute('data-section');
-            if (!sectionId) return;
-            setActiveSection(sectionId);
-            if (sectionId === 'admin-dashboard') renderLogs();
-          });
-        });
-      }
-
-      function initCreator() {
-        // toggle auto-mode UI
-        if (els.autoGenToggle && els.autoGenText) {
-          const sync = () => {
-            const on = Boolean(els.autoGenToggle.checked);
-            els.autoGenText.classList.toggle('hidden', !on);
-          };
-          sync();
-          els.autoGenToggle.addEventListener('change', sync);
-        }
-
-        els.generateBtn?.addEventListener('click', () => {
-          const autoOn = Boolean(els.autoGenToggle?.checked);
-
-          if (!autoOn) {
-            const link = generateSingleLocalLink();
-            if (!link) return;
-            showSingleResult(link);
-            return;
-          }
-
-          const items = generateMultiLocalLinks();
-          if (!items || items.length === 0) return;
-
-          // keep multi items for copy-all
-          window.__KING_LAST_MULTI__ = items;
-          showMultiResult(items);
-        });
-
-        els.copyBtn?.addEventListener('click', () => {
-          copyLink();
-        });
-
-        els.copyAllBtn?.addEventListener('click', () => {
-          const items = window.__KING_LAST_MULTI__ || [];
-          const text = collectAllMultiLinks(items);
-          copyTextToClipboard(text).then((ok) => {
-            if (!ok) {
-              alert('Clipboard permission denied. Copy the links manually.');
-              return;
-            }
-            const btn = els.copyAllBtn;
-            const original = btn.textContent;
-            btn.textContent = 'Copied All! ✅';
-            setTimeout(() => {
-              btn.textContent = original;
-            }, 2000);
-          });
-        });
-      }
-
-      function initRedirect() {
-        els.playBtn?.addEventListener('click', playAndRecord);
-      }
-
-      function initDashboardControls() {
-        els.clearBtn?.addEventListener('click', clearLogs);
-      }
-
-      function boot() {
-        initNavigation();
-        initCreator();
-        initRedirect();
-        initDashboardControls();
-
-        const params = new URLSearchParams(window.location.search);
-        const encoded = params.get('session');
-        if (encoded) {
-          const config = decodeConfig(decodeURIComponent(encoded));
-          if (!config) {
-            alert('Invalid session data.');
-            hideRedirectUi();
-            return;
-          }
-          showRedirectUi(config);
-          return;
-        }
-
-        setActiveSection('main-ui');
-        renderLogs();
-      }
-
-      window.App = {
-        copyLink,
+          </tr>
+        `).join('');
       };
 
-      boot();
-    })();
-  </script>
+      const filter = () => {
+        const term = (input.value || '').trim().toLowerCase();
+        const list = __oms.state.runSheets.filter(rs => rs.id.toLowerCase().includes(term));
+        renderRows(list);
+      };
+
+      input.addEventListener('input', filter);
+      clearBtn.addEventListener('click', () => { input.value=''; filter(); });
+    }
+
+    // Control Tower search
+    if (tabName === 'Control Tower') {
+      const input = __oms.byId('shipmentSearch');
+      const clearBtn = __oms.byId('clearShipment');
+      const body = __oms.byId('exception-table-body');
+
+      const renderRows = (list) => {
+        body.innerHTML = list.map(ex => `
+          <tr class="${ex.status === 'Urgent' ? 'urgent-row' : ''}">
+            <td><strong>${__oms.escape(ex.shipmentId)}</strong></td>
+            <td>${__oms.escape(ex.reason)}</td>
+            <td>${__oms.renderStatusPill(ex.status)}</td>
+            <td>
+              ${ex.status === 'Urgent'
+                ? `<button class="btn btn-primary" data-action="acknowledge" data-id="${__oms.escape(ex.id)}">Acknowledge</button>`
+                : `<button class="btn btn-muted" data-action="view-exception" data-id="${__oms.escape(ex.id)}">View</button>`
+              }
+            </td>
+          </tr>
+        `).join('');
+      };
+
+      const filter = () => {
+        const term = (input.value || '').trim().toLowerCase();
+        const list = __oms.state.exceptions.filter(ex =>
+          ex.shipmentId.toLowerCase().includes(term) || ex.reason.toLowerCase().includes(term)
+        );
+        renderRows(list);
+      };
+
+      input.addEventListener('input', filter);
+      clearBtn.addEventListener('click', () => { input.value=''; filter(); });
+    }
+
+    // Delete status: Enter to search -> live fetch from LeopardOMS
+    if (tabName === 'Debriefing-Delete Status') {
+      const input = __oms.byId('cnSearchInput');
+      const body = __oms.byId('delete-status-table-body');
+
+      const toRowsFromResponse = (data) => {
+        const list =
+          (Array.isArray(data) ? data : null) ||
+          (Array.isArray(data?.records) ? data.records : null) ||
+          (Array.isArray(data?.data) ? data.data : null) ||
+          (Array.isArray(data?.result) ? data.result : null) ||
+          [];
+
+        if (!list.length) {
+          return `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--text-muted);font-weight:750;">No Record..!</td></tr>`;
+        }
+
+        return list.map((row, idx) => {
+          const cnNum = row.cn ?? row.CN ?? row.consignmentNumber ?? row.consignment_no ?? '';
+          const routeDate = row.routeDate ?? row.route_date ?? '';
+          const statusDate = row.statusDate ?? row.status_date ?? '';
+          const status = row.status ?? row.Status ?? row.currentStatus ?? '';
+          const reason = row.reason ?? row.reasonText ?? row.Receiver ?? row.receiver ?? '';
+          const receiverRel = row.receiverRelation ?? row.relation ?? '';
+          const routOfficer = row.routOfficer ?? row.RoutOfficer ?? row.officer ?? '';
+          const station = row.station ?? row.Station ?? '';
+          const username = row.username ?? row.user ?? '';
+          const updatedOn = row.updatedOn ?? row.updated_on ?? '';
+
+          const picUrl = row.picUrl ?? row.pic ?? row.photoUrl ?? '';
+          const picCell = picUrl
+            ? `<img alt="pic" src="${__oms.escape(picUrl)}" style="width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid rgba(0,0,0,.08);" />`
+            : `<span style="color:var(--text-muted);font-weight:800;">-</span>`;
+
+          return `
+            <tr>
+              <td style="font-weight:900;">${idx + 1}</td>
+              <td>${__oms.escape(cnNum)}</td>
+              <td>${__oms.escape(routeDate)}</td>
+              <td>${__oms.escape(statusDate)}</td>
+              <td>${__oms.renderStatusPill(status || 'Pending')}</td>
+              <td>${__oms.escape(receiverRel ? receiverRel + ' - ' : '')}${__oms.escape(reason)}</td>
+              <td>
+                <button class="btn btn-primary" data-action="delete-status-row" data-index="${idx}" data-cn="${__oms.escape(cnNum)}" style="padding:8px 10px;font-size:.82rem;">
+                  Delete
+                </button>
+              </td>
+              <td>${__oms.escape(routOfficer)}</td>
+              <td>${__oms.escape(station)}</td>
+              <td>${__oms.escape(username)}</td>
+              <td>${__oms.escape(updatedOn)}</td>
+              <td>${picCell}</td>
+              <td>
+                <button class="btn btn-muted" data-action="view-status-row" data-index="${idx}" data-cn="${__oms.escape(cnNum)}" style="padding:8px 10px;font-size:.82rem;">
+                  View
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      };
+
+      input.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+
+        const cn = (input.value || '').trim();
+        if (!cn) return;
+
+        body.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--text-muted);font-weight:850;">Searching for ${__oms.escape(cn)}...</td></tr>`;
+
+        try {
+          // Use backend proxy to avoid CORS:
+          // GET /api/leopards-lookup?cn=<CN>
+          const url = `/api/leopards-lookup?cn=${encodeURIComponent(cn)}`;
+          const res = await fetch(url, { method: 'GET' });
+
+          if (!res.ok) {
+            const errText = await res.text().catch(() => '');
+            body.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--leopards-red);font-weight:900;">
+              Proxy request failed: HTTP ${res.status}<br/>
+              ${errText ? ('<span style="color:var(--text-secondary);font-weight:800;">' + __oms.escape(errText).slice(0, 220) + '</span>') : ''}
+            </td></tr>`;
+            return;
+          }
+
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            body.innerHTML = toRowsFromResponse(data);
+          } else {
+            const text = await res.text();
+            body.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--text-muted);font-weight:750;">
+              Proxy returned non-JSON response.<br/>${__oms.escape(text).slice(0, 300)}
+            </td></tr>`;
+          }
+        } catch (err) {
+        body.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--leopards-red);font-weight:900;">
+            Live fetch failed (likely CORS/network).<br/>
+            Solution: LeopardOMS ke liye server-side proxy/OMS endpoint enable karwana hoga.
+          </td></tr>`;
+          console.error('Live fetch error for CN:', cn, err);
+        }
+      });
+    }
+
+    // Delegate click handlers (acknowledge / close sheet)
+    // One listener per page render: fine because we reattach to main-display only once.
+    const display = __oms.byId('main-display');
+    display.onclick = (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+
+      const action = btn.getAttribute('data-action');
+      const id = btn.getAttribute('data-id');
+      const cn = btn.getAttribute('data-cn');
+
+      if (action === 'acknowledge') {
+        __oms.state.exceptions = __oms.state.exceptions.map(ex => ex.id === id ? {...ex, status:'Acknowledged'} : ex);
+        __oms.switchTab('Control Tower');
+        alert('Shipment ' + id + ' has been acknowledged in the system.');
+      }
+
+      if (action === 'close-sheet') {
+        __oms.state.runSheets = __oms.state.runSheets.map(rs => rs.id === id ? {...rs, status:'Closed'} : rs);
+        __oms.switchTab('Debriefing');
+        alert('Run Sheet ' + id + ' has been closed and updated.');
+      }
+
+      // Delete Status / View Status (LeopardOMS result rows)
+      // NOTE: Actual delete/view API not implemented (endpoint/schema not provided).
+      if (action === 'view-status-row') {
+        if (!cn) return;
+        alert('View CN: ' + cn + '\\n(Next step: open a details page or call a live VIEW endpoint once available.)');
+      }
+
+      if (action === 'delete-status-row') {
+        if (!cn) return;
+        const ok = confirm('Delete status record for CN: ' + cn + '? (Demo placeholder)');
+        if (!ok) return;
+        alert('Delete triggered for CN: ' + cn + '\\n(Next step: connect to the real DELETE endpoint after schema confirmation.)');
+      }
+    };
+  };
+
+  // ---------------- Nav click wiring ----------------
+  __oms.bindNav = () => {
+    const root = __oms.byId('navRoot');
+    root.addEventListener('click', (e) => {
+      const item = e.target.closest('.nav-item');
+      if (!item) return;
+      const tab = item.getAttribute('data-tab');
+      if (!tab) return;
+      __oms.switchTab(tab);
+    });
+
+    // Keyboard navigation (Enter)
+    root.addEventListener('keydown', (e) => {
+      const el = e.target;
+      if (!el || !el.getAttribute) return;
+      if ((e.key === 'Enter' || e.key === ' ') && el.classList.contains('nav-item')) {
+        e.preventDefault();
+        const tab = el.getAttribute('data-tab');
+        if (tab) __oms.switchTab(tab);
+      }
+    });
+  };
+
+  // ---------------- Init ----------------
+  document.addEventListener('DOMContentLoaded', () => {
+    __oms.bindNav();
+    __oms.updateDateTime();
+    setInterval(__oms.updateDateTime, 1000);
+    __oms.switchTab('Home');
+  });
+</script>
 </body>
 </html>
