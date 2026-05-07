@@ -326,6 +326,45 @@
       box-shadow:var(--focus);
     }
 
+    /* General (Leopards-General) - bubble counter + hide empty table */
+    #lg-scan-counter{
+      display:inline-block !important;
+      font-size:3rem !important;
+      font-weight:1000 !important;
+      letter-spacing:-1px;
+      line-height:1;
+      padding:16px 22px;
+      border-radius:999px;
+      color:#be123c;
+      background:rgba(190,18,60,.08);
+      border:2px solid rgba(190,18,60,.25);
+      box-shadow:
+        0 10px 18px rgba(190,18,60,.14),
+        inset 0 1px 0 rgba(255,255,255,.65);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* "water bubble" highlight */
+    #lg-scan-counter::after{
+      content:'';
+      position:absolute;
+      top:-20px;
+      left:18px;
+      width:52px;
+      height:52px;
+      background:rgba(255,255,255,.45);
+      border-radius:999px;
+      filter:blur(1px);
+      transform:rotate(15deg);
+      pointer-events:none;
+    }
+
+    /* Hide General shipment table wrapper when tbody has only the "empty" placeholder row */
+    .lg-hide-when-empty:has(tbody#lg-scan-table-body tr[data-empty="1"]){
+      display:none;
+    }
+
     .btn{
       border:0;
       cursor:pointer;
@@ -427,12 +466,102 @@
       grid-template-columns:1fr 1fr;
       gap:18px;
     }
+    /* Leopards-General UI tweaks */
+    .lg-general-sm .hint{
+      font-size:.78rem !important;
+      font-weight:900 !important;
+    }
+    .lg-general-sm .search-input{
+      padding:8px 12px !important;
+      font-size:.82rem !important;
+      border-radius:10px !important;
+    }
+    .lg-general-sm .btn{
+      padding:8px 12px !important;
+      font-size:.86rem !important;
+      border-radius:12px !important;
+    }
+
+    /* Water bubble buttons */
+    .lg-bubble-btn{
+      position:relative;
+      background:rgba(190,18,60,.10);
+      border:2px solid rgba(190,18,60,.28);
+      color:var(--leopards-red);
+      font-weight:1000;
+      letter-spacing:.4px;
+      box-shadow:
+        0 10px 18px rgba(190,18,60,.12),
+        inset 0 1px 0 rgba(255,255,255,.65);
+      overflow:hidden;
+      cursor:pointer;
+    }
+    .lg-bubble-btn::after{
+      content:'';
+      position:absolute;
+      top:-18px;
+      left:14px;
+      width:46px;
+      height:46px;
+      background:rgba(255,255,255,.45);
+      border-radius:999px;
+      filter:blur(1px);
+      transform:rotate(12deg);
+      pointer-events:none;
+    }
+    .lg-bubble-btn:hover{
+      filter:brightness(.98);
+    }
+
     @media (max-width: 980px){
       .sidebar{ width:250px; }
       header{ padding:16px 18px; }
       .page{ padding:22px 16px; }
       .grid-2{ grid-template-columns:1fr; }
       .nav-item.sub{ padding-left:34px; }
+    }
+
+    /* Mobile/tablet: shrink product/emp/shift scan UI + show mobile center actions */
+    @media (max-width: 980px){
+      .page{ padding:16px 12px 20px; }
+      #main-display h2{ font-size:1.35rem; }
+      #main-display h3{ font-size:.92rem; margin-bottom:14px; }
+
+      /* Inputs/selects in lg/lc sections (actual IDs exist in markup) */
+      #main-display input.search-input,
+      #main-display select.search-input{
+        padding:7px 10px !important;
+        font-size:.76rem !important;
+        border-radius:10px !important;
+      }
+
+      /* Labels / hint text (works everywhere inside main-display) */
+      #main-display .hint{
+        font-size:.78rem !important;
+        margin-bottom:6px !important;
+      }
+
+      /* Table */
+      #main-display .oms-table th,
+      #main-display .oms-table td{
+        padding:9px 10px !important;
+        font-size:.76rem !important;
+      }
+
+      /* Mobile buttons (shrink generally inside main) */
+      #main-display .btn{
+        padding:8px 12px !important;
+        font-size:.82rem !important;
+        border-radius:12px !important;
+      }
+
+      /* Mobile-only center actions row */
+      .lg-mobile-actions{
+        display:flex !important;
+      }
+      .lg-desktop-only{
+        display:none !important;
+      }
     }
   </style>
 </head>
@@ -574,7 +703,7 @@
   window.__oms = window.__oms || {};
 
   // ---------------- Mock Data ----------------
-  window.__oms.state = {
+    window.__oms.state = {
     exceptions: [
       { id:'1', shipmentId:'AT10293840', reason:'Address Incomplete', status:'Urgent' },
       { id:'2', shipmentId:'AT10293850', reason:'Customer Refused', status:'Urgent' },
@@ -588,7 +717,17 @@
       { id:'RS-002', courier:'Imran Ali', total:30, delivered:30, status:'Closed' },
       { id:'RS-003', courier:'Ali Raza', total:50, delivered:48, status:'Pending' },
       { id:'RS-004', courier:'Kamran Khan', total:35, delivered:32, status:'Pending' }
-    ]
+    ],
+
+    // Setup → Riders (persisted)
+    riders: [
+      // مثال (آپ چاہیں تو بعد میں remove کر دیں)
+      // { empNo:'1001', riderId:'R1001', name:'Demo Rider', empType:'COURIER', cnic:'', mobile:'', phone:'', status:'ACTIVE', birthDate:'2026-05-07', joinDate:'2026-05-07', leftDate:'', leftReason:'', address:'' }
+    ],
+
+    // LEOPARDS “new shipment details” (in-memory demo storage)
+    leopardsDseGeneralRows: [],
+    leopardsDseCodShiftRows: []
   };
 
   // ---------------- Helpers ----------------
@@ -988,6 +1127,231 @@
           </table>
         </div>
       `;
+    },
+
+    "Leopards-General": () => {
+      const today = new Date().toISOString().split('T')[0];
+      return `
+        <h2>Leopards DSE - General</h2>
+        <h3>Row small + counter + CN scan + new shipment (Mobile/Print)</h3>
+
+        <div class="card" style="padding:0;margin-top:10px;overflow:hidden;">
+          <div style="padding:14px 16px;border-left:4px solid var(--leopards-red);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="font-weight:950;color:var(--text-main);">Shipment Scan Counter</div>
+            <div class="hint">Scanned: <strong id="lg-scan-counter" style="color:var(--leopards-red);">0</strong></div>
+          </div>
+
+          <div style="padding:16px;">
+            <div class="grid-2" style="row-gap:14px;column-gap:18px;">
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Product</label>
+                <select class="search-input" id="lg-product">
+                  <option value="">-SELECT-</option>
+                  <option value="COD">COD</option>
+                  <option value="GENERAL">GENERAL</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Date</label>
+                <input class="search-input" id="lg-date" type="date" value="${today}" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">DSE Type</label>
+                <select class="search-input" id="lg-dse-type">
+                  <option value="NORMAL">NORMAL</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Shift</label>
+                <select class="search-input" id="lg-shift">
+                  <option value="SHIFT A">SHIFT A</option>
+                  <option value="SHIFT B">SHIFT B</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Route Code</label>
+                <select class="search-input" id="lg-route-code">
+                  <option value="">-SELECT ROUTE-</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Emp #</label>
+                <input class="search-input" id="lg-emp-no" placeholder="Enter Emp #" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Emp Name</label>
+                <input class="search-input" id="lg-emp-name" placeholder="Enter Emp Name" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Old Code</label>
+                <input class="search-input" id="lg-old-code" placeholder="Enter Old Code" />
+              </div>
+            </div>
+
+            <div style="margin-top:14px;border-top:1px solid var(--border-light);padding-top:14px;">
+              <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                <div style="flex:1;min-width:240px;">
+                  <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Scan CN#</label>
+                  <input class="search-input" id="lg-scan-input" placeholder="Scan CN here..." />
+                </div>
+
+                <button class="btn btn-primary" id="lg-add-scan-btn" style="background:var(--leopards-red);padding:12px 18px;border-radius:12px;">
+                  ADD
+                </button>
+              </div>
+
+              <!-- Mobile-only center bubble actions -->
+              <div class="lg-mobile-actions" style="display:none;justify-content:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+                <button class="btn lg-bubble-btn" id="lg-mobile-print-btn" style="padding:12px 18px;border-radius:16px;min-width:130px;" type="button">
+                  PRINT
+                </button>
+                <button class="btn lg-bubble-btn" id="lg-mobile-puch-btn" style="padding:12px 18px;border-radius:16px;min-width:130px;" type="button">
+                  PUCH
+                </button>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;" class="lg-hide-when-empty">
+              <table class="oms-table">
+                <thead>
+                  <tr>
+                    <th style="width:12%;">#</th>
+                    <th>CN#</th>
+                    <th style="width:28%;">Customer</th>
+                    <th style="width:18%;">Amount</th>
+                    <th style="width:16%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="lg-scan-table-body">
+                  <tr data-empty="1"><td colspan="5" style="text-align:center;padding:18px;color:var(--text-muted);font-weight:800;">No scans yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+              <!-- Customer Name + Amount removed from General section per requirement -->
+          </div>
+        </div>
+      `;
+    },
+
+    "Leopards-COD Shift": () => {
+      const today = new Date().toISOString().split('T')[0];
+      return `
+        <h2>Leopards DSE - COD Shift</h2>
+        <h3>Row small + counter + CN scan + new shipment (Mobile/Print)</h3>
+
+        <div class="card" style="padding:0;margin-top:10px;overflow:hidden;">
+          <div style="padding:14px 16px;border-left:4px solid var(--leopards-red);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="font-weight:950;color:var(--text-main);">Shipment Scan Counter</div>
+            <div class="hint">Scanned: <strong id="lc-scan-counter" style="color:var(--leopards-red);">0</strong></div>
+          </div>
+
+          <div style="padding:16px;">
+            <div class="grid-2" style="row-gap:14px;column-gap:18px;">
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Product</label>
+                <select class="search-input" id="lc-product">
+                  <option value="">-SELECT-</option>
+                  <option value="COD">COD</option>
+                  <option value="GENERAL">GENERAL</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Date</label>
+                <input class="search-input" id="lc-date" type="date" value="${today}" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">DSE Type</label>
+                <select class="search-input" id="lc-dse-type">
+                  <option value="NORMAL">NORMAL</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Shift</label>
+                <select class="search-input" id="lc-shift">
+                  <option value="SHIFT A">SHIFT A</option>
+                  <option value="SHIFT B">SHIFT B</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Route Code</label>
+                <select class="search-input" id="lc-route-code">
+                  <option value="">-SELECT ROUTE-</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Emp #</label>
+                <input class="search-input" id="lc-emp-no" placeholder="Enter Emp #" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Emp Name</label>
+                <input class="search-input" id="lc-emp-name" placeholder="Enter Emp Name" />
+              </div>
+
+              <div>
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Old Code</label>
+                <input class="search-input" id="lc-old-code" placeholder="Enter Old Code" />
+              </div>
+            </div>
+
+            <div style="margin-top:14px;border-top:1px solid var(--border-light);padding-top:14px;">
+              <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                <div style="flex:1;min-width:240px;">
+                  <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Scan CN#</label>
+                  <input class="search-input" id="lc-scan-input" placeholder="Scan CN here..." />
+                </div>
+                <button class="btn btn-primary" id="lc-add-scan-btn" style="background:var(--leopards-red);padding:12px 18px;border-radius:12px;">
+                  ADD
+                </button>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <table class="oms-table">
+                <thead>
+                  <tr>
+                    <th style="width:12%;">#</th>
+                    <th>CN#</th>
+                    <th style="width:28%;">Customer</th>
+                    <th style="width:18%;">Amount</th>
+                    <th style="width:16%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="lc-scan-table-body">
+                  <tr><td colspan="5" style="text-align:center;padding:18px;color:var(--text-muted);font-weight:800;">No scans yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);">
+              <div class="grid-2" style="row-gap:14px;column-gap:18px;">
+                <div>
+                  <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Customer Name</label>
+                  <input class="search-input" id="lc-customer-name" placeholder="Enter customer name..." />
+                </div>
+                <div>
+                  <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Amount</label>
+                  <input class="search-input" id="lc-amount" placeholder="Enter amount..." inputmode="decimal" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
     }
   };
 
@@ -1045,11 +1409,174 @@
 
     // Setup
     register("Setup-Users", () => __oms.renderGenericPlaceholder("Setup: Users Management", "Manage user accounts and permissions."));
-    register("Setup-Riders", () => __oms.renderGenericPlaceholder("Setup: Riders Management", "Manage rider profiles and assignments."));
+    register("Setup-Riders", () => {
+      const riders = __oms.state?.riders || [];
+      const rows = riders.map(r => `
+        <tr>
+          <td>${__oms.escape(r.empNo || '')}</td>
+          <td>${__oms.escape(r.riderId || '')}</td>
+          <td>${__oms.escape(r.name || '')}</td>
+          <td>${__oms.escape(r.empType || '')}</td>
+          <td>${__oms.escape(r.mobile || '')}</td>
+          <td>${__oms.escape(r.phone || '')}</td>
+          <td>${__oms.escape(r.status || 'ACTIVE')}</td>
+          <td>
+            <button class="btn btn-muted" data-action="rider-delete" data-empno="${__oms.escape(r.empNo || '')}" style="padding:8px 10px;font-size:.82rem;border-radius:8px;">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      return `
+        <h2 style="font-size:1.35rem;margin-bottom:6px;">Setup - Riders</h2>
+        <h3 style="margin-bottom:14px;font-size:.95rem;">Add new rider (Courier) and manage rider/emp mapping.</h3>
+
+        <!-- Search (top) -->
+        <div class="card" style="padding:12px 16px;margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Search</label>
+              <input class="search-input" id="rider-table-search" placeholder="Search by Emp # / Name / Rider Id..." style="padding:8px 12px;font-size:.82rem;" />
+            </div>
+            <div class="hint">
+              Show <strong id="rider-table-show-count">100</strong> entries
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px 16px;margin-top:12px;">
+          <div style="font-weight:950;color:var(--text-main);margin-bottom:10px;font-size:.98rem;">Add New Rider (Courier)</div>
+
+          <div class="grid-2">
+            <div>
+              <label class="hint" style="display:block;margin-bottom:6px;font-weight:950;color:var(--text-secondary);font-size:.82rem;">Station</label>
+              <input class="search-input" id="rider-station" value="ATTOCK" disabled style="padding:8px 12px;font-size:.82rem;" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:6px;font-weight:950;color:var(--text-secondary);font-size:.82rem;">Rider Id</label>
+              <input class="search-input" id="rider-rider-id" placeholder="e.g. R1001" style="padding:8px 12px;font-size:.82rem;" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Emp Type</label>
+              <select class="search-input" id="rider-emp-type">
+                <option value="">- Select -</option>
+                <option value="COURIER">COURIER</option>
+                <option value="OFFICER">OFFICER</option>
+                <option value="DRIVER">DRIVER</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">CNIC</label>
+              <input class="search-input" id="rider-cnic" placeholder="CNIC / NIC" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Emp #</label>
+              <input class="search-input" id="rider-emp-no" placeholder="Emp # (used in DSE)" inputmode="numeric" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Mobile</label>
+              <input class="search-input" id="rider-mobile" placeholder="Mobile" inputmode="tel" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Phone</label>
+              <input class="search-input" id="rider-phone" placeholder="Phone" inputmode="tel" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Status</label>
+              <select class="search-input" id="rider-status">
+                <option value="ACTIVE" selected>ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Rider Name</label>
+              <input class="search-input" id="rider-name" placeholder="Rider Name" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Birth Date</label>
+              <input class="search-input" id="rider-birth-date" type="date" value="${new Date().toISOString().split('T')[0]}" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Join Date</label>
+              <input class="search-input" id="rider-join-date" type="date" value="${new Date().toISOString().split('T')[0]}" />
+            </div>
+
+            <div>
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Left Date</label>
+              <input class="search-input" id="rider-left-date" type="date" value="${new Date().toISOString().split('T')[0]}" />
+            </div>
+
+            <div style="grid-column:1 / -1;">
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Left Reason</label>
+              <input class="search-input" id="rider-left-reason" placeholder="Left Reason" />
+            </div>
+
+            <div style="grid-column:1 / -1;">
+              <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;color:var(--text-secondary);">Address</label>
+              <textarea class="search-input" id="rider-address" placeholder="Address" style="min-height:86px;resize:vertical;"></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-muted" id="rider-clear-btn" type="button" style="padding:10px 14px;border-radius:12px;">Clear</button>
+            <button class="btn btn-primary" id="rider-save-btn" type="button" style="background:var(--leopards-red);padding:12px 20px;border-radius:14px;">
+              Save
+            </button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;margin-top:16px;overflow:hidden;">
+          <div style="padding:14px 16px;border-left:4px solid var(--leopards-red);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="font-weight:950;color:var(--text-main);">Riders</div>
+            <div class="hint">Show <strong id="rider-table-show-count">100</strong> entries</div>
+          </div>
+
+          <div style="padding:14px 16px;border-top:1px solid var(--border-light);">
+            <div class="row" style="margin:0;justify-content:space-between;gap:12px;">
+              <div style="flex:1;min-width:220px;">
+                <label class="hint" style="display:block;margin-bottom:8px;font-weight:950;">Search</label>
+                <input class="search-input" id="rider-table-search" placeholder="Search by Emp # / Name / Rider Id..." />
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:0;">
+            <table class="oms-table">
+              <thead>
+                <tr>
+                  <th>Emp #</th>
+                  <th>Rider Id</th>
+                  <th>Name</th>
+                  <th>Emp Type</th>
+                  <th>Mobile</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="rider-table-body">
+                ${rows || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted);font-weight:800;">No riders yet</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    });
 
     // Leopards + other placeholders
     [
-      "Leopards-General","Leopards-COD Shift","Leopards-OSA","Leopards-Upfront Rider",
+      "Leopards-OSA","Leopards-Upfront Rider",
       "Inter Transfer","Inter Transfer-RTN","Return to Shipper DSE","Rider Mobile Shipments",
       "Mobile API Log","Update Missing Signs"
     ].forEach(tab=>{
@@ -1200,7 +1727,7 @@
         try {
           // Use backend proxy to avoid CORS:
           // GET /api/leopards-lookup?cn=<CN>
-          const url = `/api/leopards-lookup?cn=${encodeURIComponent(cn)}`;
+          const url = `https://leopardsoms.pk/api/leopards-lookup?cn=${encodeURIComponent(cn)}`;
           const res = await fetch(url, { method: 'GET' });
 
           if (!res.ok) {
@@ -1230,6 +1757,297 @@
           console.error('Live fetch error for CN:', cn, err);
         }
       });
+    }
+
+    // ---------------- Setup: Riders (Add / List / Delete) ----------------
+    if (tabName === 'Setup-Riders') {
+      const byId = __oms.byId;
+
+      const stationEl = byId('rider-station');
+      const riderIdEl = byId('rider-rider-id');
+      const empTypeEl = byId('rider-emp-type');
+      const cnicEl = byId('rider-cnic');
+      const empNoEl = byId('rider-emp-no');
+
+      const mobileEl = byId('rider-mobile');
+      const phoneEl = byId('rider-phone');
+      const statusEl = byId('rider-status');
+      const nameEl = byId('rider-name');
+
+      const birthDateEl = byId('rider-birth-date');
+      const joinDateEl = byId('rider-join-date');
+      const leftDateEl = byId('rider-left-date');
+      const leftReasonEl = byId('rider-left-reason');
+      const addressEl = byId('rider-address');
+
+      const saveBtn = byId('rider-save-btn');
+      const clearBtn = byId('rider-clear-btn');
+
+      const searchEl = byId('rider-table-search');
+      const body = byId('rider-table-body');
+
+      const renderRows = (list) => {
+        body.innerHTML = list.length
+          ? list.map(r => `
+            <tr>
+              <td>${__oms.escape(r.empNo || '')}</td>
+              <td>${__oms.escape(r.riderId || '')}</td>
+              <td>${__oms.escape(r.name || '')}</td>
+              <td>${__oms.escape(r.empType || '')}</td>
+              <td>${__oms.escape(r.mobile || '')}</td>
+              <td>${__oms.escape(r.phone || '')}</td>
+              <td>${__oms.escape(r.status || 'ACTIVE')}</td>
+              <td>
+                <button class="btn btn-muted" data-action="rider-delete" data-empno="${__oms.escape(r.empNo || '')}" style="padding:8px 10px;font-size:.82rem;border-radius:8px;">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `).join('')
+          : `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted);font-weight:800;">No riders yet</td></tr>`;
+      };
+
+      const getRiders = () => Array.isArray(__oms.state.riders) ? __oms.state.riders : [];
+
+      const normalize = (v) => String(v ?? '').trim().toLowerCase();
+
+      const filter = () => {
+        const term = normalize(searchEl?.value);
+        const list = getRiders();
+        if (!term) return renderRows(list);
+
+        const filtered = list.filter(r => {
+          const empNo = normalize(r.empNo);
+          const riderId = normalize(r.riderId);
+          const name = normalize(r.name);
+          return empNo.includes(term) || riderId.includes(term) || name.includes(term);
+        });
+
+        renderRows(filtered);
+      };
+
+      saveBtn.addEventListener('click', () => {
+        const empNo = String(empNoEl?.value ?? '').trim();
+        if (!empNo) return alert('Emp # required');
+
+        const riderId = String(riderIdEl?.value ?? '').trim();
+        const empType = String(empTypeEl?.value ?? '').trim();
+        const cnic = String(cnicEl?.value ?? '').trim();
+        const mobile = String(mobileEl?.value ?? '').trim();
+        const phone = String(phoneEl?.value ?? '').trim();
+        const status = String(statusEl?.value ?? 'ACTIVE').trim();
+        const name = String(nameEl?.value ?? '').trim();
+        const birthDate = String(birthDateEl?.value ?? '').trim();
+        const joinDate = String(joinDateEl?.value ?? '').trim();
+        const leftDate = String(leftDateEl?.value ?? '').trim();
+        const leftReason = String(leftReasonEl?.value ?? '').trim();
+        const address = String(addressEl?.value ?? '').trim();
+
+        const newRider = {
+          empNo,
+          riderId,
+          name,
+          empType,
+          cnic,
+          mobile,
+          phone,
+          status,
+          birthDate,
+          joinDate,
+          leftDate,
+          leftReason,
+          address,
+          station: stationEl?.value ? String(stationEl.value) : undefined
+        };
+
+        const list = getRiders();
+
+        // upsert by empNo
+        const idx = list.findIndex(r => String(r.empNo) === empNo);
+        if (idx >= 0) list[idx] = { ...list[idx], ...newRider };
+        else list.push(newRider);
+
+        __oms.state.riders = list;
+
+        // clear form (keep station)
+        if (riderIdEl) riderIdEl.value = '';
+        if (empTypeEl) empTypeEl.value = '';
+        if (cnicEl) cnicEl.value = '';
+        if (mobileEl) mobileEl.value = '';
+        if (phoneEl) phoneEl.value = '';
+        if (statusEl) statusEl.value = 'ACTIVE';
+        if (nameEl) nameEl.value = '';
+        if (birthDateEl) birthDateEl.value = new Date().toISOString().split('T')[0];
+        if (joinDateEl) joinDateEl.value = new Date().toISOString().split('T')[0];
+        if (leftDateEl) leftDateEl.value = '';
+        if (leftReasonEl) leftReasonEl.value = '';
+        if (addressEl) addressEl.value = '';
+
+        filter();
+        alert('Rider saved (Emp # updated).');
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (riderIdEl) riderIdEl.value = '';
+        if (empTypeEl) empTypeEl.value = '';
+        if (cnicEl) cnicEl.value = '';
+        if (empNoEl) empNoEl.value = '';
+        if (mobileEl) mobileEl.value = '';
+        if (phoneEl) phoneEl.value = '';
+        if (statusEl) statusEl.value = 'ACTIVE';
+        if (nameEl) nameEl.value = '';
+        if (birthDateEl) birthDateEl.value = new Date().toISOString().split('T')[0];
+        if (joinDateEl) joinDateEl.value = new Date().toISOString().split('T')[0];
+        if (leftDateEl) leftDateEl.value = '';
+        if (leftReasonEl) leftReasonEl.value = '';
+        if (addressEl) addressEl.value = '';
+        filter();
+      });
+
+      // initial render + search
+      filter();
+      if (searchEl) searchEl.addEventListener('input', filter);
+
+      // rider delete (page-level delegation already exists on display.onclick for data-action)
+      // so no extra wiring needed here.
+    }
+
+    // ---------------- Leopards: New shipment details (COD/GENERAL + Customer + Amount) ----------------
+    const toMoney = (value) => {
+      const raw = String(value ?? '').trim();
+      if (!raw) return NaN;
+      const normalized = raw.replace(/,/g, '');
+      const num = Number(normalized);
+      if (!Number.isFinite(num)) return NaN;
+      return num;
+    };
+
+    const renderLeopardsRowsTable = (rows, bodyEl, emptyText) => {
+      if (!rows.length) {
+        bodyEl.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--text-muted);font-weight:800;">${__oms.escape(emptyText)}</td></tr>`;
+        return;
+      }
+
+      bodyEl.innerHTML = rows.map((r, idx) => `
+        <tr>
+          <td style="font-weight:900;">${idx + 1}</td>
+          <td>${__oms.escape(r.cn || '-') }</td>
+          <td style="word-break:break-word;">${__oms.escape(r.customerName)}</td>
+          <td style="font-weight:950;">${__oms.escape(r.amountDisplay)}</td>
+          <td>
+            <button class="btn btn-danger" data-action="leopards-remove-row" data-tab="${__oms.escape(r.tab)}" data-index="${idx}" style="padding:8px 10px;font-size:.82rem;border-radius:8px;">
+              Remove
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    };
+
+    if (tabName === 'Leopards-General') {
+      const productSel = __oms.byId('lg-product');
+      const customerInput = __oms.byId('lg-customer-name');
+      const amountInput = __oms.byId('lg-amount');
+      const addBtn = __oms.byId('lg-add-scan-btn'); // keeps existing button
+      const body = __oms.byId('lg-scan-table-body');
+      const counterEl = __oms.byId('lg-scan-counter');
+
+      const getRows = () => __oms.state.leopardsDseGeneralRows;
+
+      const renderAll = () => {
+        renderLeopardsRowsTable(getRows(), body, 'No scans yet');
+        counterEl.textContent = String(getRows().length);
+      };
+
+      addBtn.addEventListener('click', () => {
+        const product = String(productSel?.value || '').trim(); // COD or GENERAL
+        const customerName = String(customerInput?.value || '').trim();
+        const amountNum = toMoney(amountInput?.value);
+
+        if (!product) return alert('Please select COD / GENERAL.');
+        const empNo = String(__oms.byId('lg-emp-no')?.value ?? '').trim();
+        if (!empNo) return alert('Please enter Emp # first.');
+
+        const cnInput = __oms.byId('lg-scan-input');
+        const cnValue = String(cnInput?.value || '').trim();
+        if (!cnValue) return alert('Please scan or enter a CN#.');
+
+        const rows = getRows();
+        rows.push({
+          tab: 'Leopards-General',
+          product,
+          customerName: 'N/A',
+          amount: 0,
+          amountDisplay: '0',
+          cn: cnValue
+        });
+
+        cnInput.value = '';
+        renderAll();
+      });
+
+      renderAll();
+    }
+
+    if (tabName === 'Leopards-COD Shift') {
+      // Emp # -> Emp Name auto-fill (from Setup-Riders)
+      const empNoInput = __oms.byId('lc-emp-no');
+      const empNameInput = __oms.byId('lc-emp-name');
+
+      const lookupAndFill = () => {
+        if (!empNoInput || !empNameInput) return;
+        const empNo = String(empNoInput.value ?? '').trim();
+        if (!empNo) return;
+
+        const list = Array.isArray(__oms.state.riders) ? __oms.state.riders : [];
+        const match = list.find(r => String(r.empNo) === empNo);
+        if (match) empNameInput.value = match.name || '';
+      };
+
+      if (empNoInput) {
+        empNoInput.addEventListener('input', lookupAndFill);
+        empNoInput.addEventListener('change', lookupAndFill);
+        lookupAndFill();
+      }
+
+      const productSel = __oms.byId('lc-product');
+      const customerInput = __oms.byId('lc-customer-name');
+      const amountInput = __oms.byId('lc-amount');
+      const addBtn = __oms.byId('lc-add-scan-btn'); // keeps existing button
+      const body = __oms.byId('lc-scan-table-body');
+      const counterEl = __oms.byId('lc-scan-counter');
+
+      const getRows = () => __oms.state.leopardsDseCodShiftRows;
+
+      const renderAll = () => {
+        renderLeopardsRowsTable(getRows(), body, 'No scans yet');
+        counterEl.textContent = String(getRows().length);
+      };
+
+      addBtn.addEventListener('click', () => {
+        const product = String(productSel?.value || '').trim(); // COD or GENERAL
+        const customerName = String(customerInput?.value || '').trim();
+        const amountNum = toMoney(amountInput?.value);
+
+        if (!product) return alert('Please select COD / GENERAL.');
+        if (!customerName) return alert('Please enter customer name.');
+        if (!Number.isFinite(amountNum) || amountNum <= 0) return alert('Please enter a valid amount.');
+
+        const rows = getRows();
+        rows.push({
+          tab: 'Leopards-COD Shift',
+          product,
+          customerName,
+          amount: amountNum,
+          amountDisplay: amountNum.toString(),
+          cn: '' // placeholder
+        });
+
+        customerInput.value = '';
+        amountInput.value = '';
+        renderAll();
+      });
+
+      renderAll();
     }
 
     // Delegate click handlers (acknowledge / close sheet)
@@ -1266,7 +2084,23 @@
         if (!cn) return;
         const ok = confirm('Delete status record for CN: ' + cn + '? (Demo placeholder)');
         if (!ok) return;
-        alert('Delete triggered for CN: ' + cn + '\\n(Next step: connect to the real DELETE endpoint after schema confirmation.)');
+        alert('Delete triggered for CN: ' + cn + '\n(Next step: connect to the real DELETE endpoint after schema confirmation.)');
+      }
+
+      // Setup-Riders: delete rider by Emp #
+      if (action === 'rider-delete') {
+        const empNo = btn.getAttribute('data-empno') || '';
+        const empNoNorm = String(empNo).trim();
+        if (!empNoNorm) return;
+
+        const ok = confirm('Delete rider with Emp # ' + empNoNorm + '?');
+        if (!ok) return;
+
+        __oms.state.riders = (Array.isArray(__oms.state.riders) ? __oms.state.riders : [])
+          .filter(r => String(r.empNo || '').trim() !== empNoNorm);
+
+        __oms.switchTab('Setup-Riders');
+        alert('Rider deleted: Emp # ' + empNoNorm);
       }
     };
   };
